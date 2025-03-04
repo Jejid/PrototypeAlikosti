@@ -8,7 +8,7 @@ public class PrototypeAlikostiApplication {
 
 	public static void main(String[] args) {
 		SpringApplication.run(PrototypeAlikostiApplication.class, args);
-		System.out.println("Hi Riascos");
+		System.out.println("Hi Riascos aqui tratando");
 	}
 
 }
