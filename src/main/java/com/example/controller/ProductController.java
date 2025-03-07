@@ -1,7 +1,10 @@
 package com.example.controller;
 
+import com.example.exception.ProductNotFoundException;
 import com.example.model.Product;
 import com.example.service.ProductService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -12,6 +15,7 @@ import java.util.Map;
 @RequestMapping("/api/products")
 public class ProductController {
 
+    private static final Logger logger = LoggerFactory.getLogger(ProductController.class);
     private final ProductService productService;
 
     public ProductController(ProductService productService) {
@@ -27,7 +31,7 @@ public class ProductController {
     public ResponseEntity<Product> getProductById(@PathVariable Integer id) {
         return productService.getProductById(id)
                 .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+                .orElseThrow(() -> new ProductNotFoundException("Producto con ID " + id + " no encontrado"));
     }
 
     @PostMapping
@@ -37,15 +41,10 @@ public class ProductController {
 
     @PutMapping("/{id}")
     public ResponseEntity<Product> updateProduct(@PathVariable Integer id, @RequestBody Product product) {
-        System.out.println("Intentando actualizar el producto con ID: " + id);
-        try {
-            Product updatedProduct = productService.updateProduct(id, product);
-            System.out.println("Producto actualizado correctamente: " + updatedProduct);
-            return ResponseEntity.ok(updatedProduct);
-        } catch (RuntimeException e) {
-            System.out.println("Error: " + e.getMessage());
-            return ResponseEntity.notFound().build();
-        }
+        logger.info("Intentando actualizar el producto con ID: {}", id);
+        Product updatedProduct = productService.updateProduct(id, product);
+        logger.info("Producto actualizado correctamente: {}", updatedProduct);
+        return ResponseEntity.ok(updatedProduct);
     }
 
     @DeleteMapping("/{id}")
@@ -59,23 +58,45 @@ public class ProductController {
             @PathVariable Integer id,
             @RequestBody Map<String, Object> updates) {
 
-        return productService.getProductById(id).map(product -> {
+        Product product = productService.getProductById(id)
+                .orElseThrow(() -> new ProductNotFoundException("Producto con ID " + id + " no encontrado"));
 
-            updates.forEach((key, value) -> {
-                switch (key) {
-                    case "name": product.setName((String) value); break;
-                    case "description": product.setDescription((String) value); break;
-                    case "price": product.setPrice((Integer) value); break;
-                    case "stock": product.setStock((Integer) value); break;
-                    case "pic": product.setPic((String) value); break;
-                    case "categoryId": product.setCategoryId((Integer) value); break;
-                    case "storeId": product.setStoreId((Integer) value); break;
-                }
-            });
+        updates.forEach((key, value) -> {
+            switch (key) {
+                case "name": product.setName((String) value); break;
+                case "description": product.setDescription((String) value); break;
+                case "price": product.setPrice((Integer) value); break;
+                case "stock": product.setStock((Integer) value); break;
+                case "pic": product.setPic((String) value); break;
+                case "categoryId": product.setCategoryId((Integer) value); break;
+                case "storeId": product.setStoreId((Integer) value); break;
+                default:
+                    throw new IllegalArgumentException("El campo " + key + " no existe en la tabla o no es válido para actualización");
+            }
+        });
 
-            productService.createProduct(product);
-            return ResponseEntity.ok(product);
-        }).orElse(ResponseEntity.notFound().build());
+        productService.createProduct(product);
+        return ResponseEntity.ok(product);
     }
 
+    /**
+     * Manejo de excepciones específicas dentro del controlador.
+     */
+    @ExceptionHandler(ProductNotFoundException.class)
+    public ResponseEntity<String> handleProductNotFoundException(ProductNotFoundException ex) {
+        logger.error("Error: {}", ex.getMessage());
+        return ResponseEntity.status(404).body(ex.getMessage());
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<String> handleIllegalArgumentException(IllegalArgumentException ex) {
+        logger.error("Error de argumento invalido: {}", ex.getMessage());
+        return ResponseEntity.status(400).body("Solicitud inválida: " + ex.getMessage());
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<String> handleGenericException(Exception ex) {
+        logger.error("Error inesperado: ", ex);
+        return ResponseEntity.status(500).body("Error interno del servidor. Contáctese con EdwinSoporte.");
+    }
 }
