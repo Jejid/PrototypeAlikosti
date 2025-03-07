@@ -10,27 +10,25 @@ public class Product {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    private int category_id;
-    private int store_id;
-    @Column(name = "name", length = 15, nullable = false)
+    private int categoryId;
+    private int storeId;
+    @Column(name = "name", length = 30, nullable = false)
     private String name;
     @Column(name = "price", nullable = false)
     private int price;
-    @Column(name = "description", length = 40)
     private String description;
     private int stock;
-    @Column(name = "pic", length = 50)
     private String pic;
 
     //Getters and Setters
     public int getId() {return id;}
     public void setId(int id) {this.id = id;}
 
-    public int getCategory_id() {return category_id;}
-    public void setCategory_id(int category_id) {this.category_id = category_id;}
+    public int getCategoryId() {return categoryId;}
+    public void setCategoryId(int categoryId) {this.categoryId = categoryId;}
 
-    public int getStore_id() {return store_id;}
-    public void setStore_id(int store_id) {this.store_id = store_id;}
+    public int getStoreId() {return storeId;}
+    public void setStoreId(int storeId) {this.storeId = storeId;}
 
     public String getName() {return name;}
     public void setName(String name) {this.name = name;}

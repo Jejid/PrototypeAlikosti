@@ -18,10 +18,10 @@ public class DataBaseTestOne implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        List<Product> users = productRepository.findAll();
-        System.out.println("Productos en la base de datos: " + users.size());
+        List<Product> products = productRepository.findAll();
+        System.out.println("Productos en la base de datos: " + products.size());
 
-        users.forEach(product ->
+        products.forEach(product ->
                 System.out.println("ID: " + product.getId() + " | Nombre: " + product.getName() + " | Price: " + product.getPrice())
         );
     }
