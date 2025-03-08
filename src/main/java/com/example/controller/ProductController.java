@@ -1,8 +1,10 @@
 package com.example.controller;
 
+import com.example.exception.BadRequestException;
 import com.example.exception.ProductNotFoundException;
 import com.example.model.Product;
 import com.example.service.ProductService;
+import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
@@ -35,12 +37,13 @@ public class ProductController {
     }
 
     @PostMapping
-    public Product createProduct(@RequestBody Product product) {
-        return productService.createProduct(product);
+    public ResponseEntity<Product> createProduct(@Valid @RequestBody Product product) {
+        Product savedProduct = productService.createProduct(product);
+        return ResponseEntity.ok(savedProduct);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Product> updateProduct(@PathVariable Integer id, @RequestBody Product product) {
+    public ResponseEntity<Product> updateProduct(@PathVariable Integer id,@Valid @RequestBody Product product) {
         logger.info("Intentando actualizar el producto con ID: {}", id);
         Product updatedProduct = productService.updateProduct(id, product);
         logger.info("Producto actualizado correctamente: {}", updatedProduct);
@@ -62,41 +65,41 @@ public class ProductController {
                 .orElseThrow(() -> new ProductNotFoundException("Producto con ID " + id + " no encontrado"));
 
         updates.forEach((key, value) -> {
-            switch (key) {
-                case "name": product.setName((String) value); break;
-                case "description": product.setDescription((String) value); break;
-                case "price": product.setPrice((Integer) value); break;
-                case "stock": product.setStock((Integer) value); break;
-                case "pic": product.setPic((String) value); break;
-                case "categoryId": product.setCategoryId((Integer) value); break;
-                case "storeId": product.setStoreId((Integer) value); break;
-                default:
-                    throw new IllegalArgumentException("El campo " + key + " no existe en la tabla o no es válido para actualización");
+            try {
+                switch (key) {
+                    case "name":
+                        if (value instanceof String) product.setName((String) value);
+                        break;
+                    case "description":
+                        if (value instanceof String) product.setDescription((String) value);
+                        break;
+                    case "price":
+                        if (value instanceof Number) product.setPrice(((Number) value).intValue());
+                        break;
+                    case "stock":
+                        if (value instanceof Number) product.setStock(((Number) value).intValue());
+                        break;
+                    case "pic":
+                        if (value instanceof String) product.setPic((String) value);
+                        break;
+                    case "categoryId":
+                        if (value instanceof Number) product.setCategoryId(((Number) value).intValue());
+                        break;
+                    case "storeId":
+                        if (value instanceof Number) product.setStoreId(((Number) value).intValue());
+                        break;
+                    default:
+                        throw new IllegalArgumentException("El campo " + key + " no es válido o no existe para actualización.");
+                }
+            } catch (ClassCastException e) {
+                throw new IllegalArgumentException("Tipo de dato incorrecto para el campo " + key);
             }
         });
+
 
         productService.createProduct(product);
         return ResponseEntity.ok(product);
     }
 
-    /**
-     * Manejo de excepciones específicas dentro del controlador.
-     */
-    @ExceptionHandler(ProductNotFoundException.class)
-    public ResponseEntity<String> handleProductNotFoundException(ProductNotFoundException ex) {
-        logger.error("Error: {}", ex.getMessage());
-        return ResponseEntity.status(404).body(ex.getMessage());
-    }
 
-    @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<String> handleIllegalArgumentException(IllegalArgumentException ex) {
-        logger.error("Error de argumento invalido: {}", ex.getMessage());
-        return ResponseEntity.status(400).body("Solicitud inválida: " + ex.getMessage());
-    }
-
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<String> handleGenericException(Exception ex) {
-        logger.error("Error inesperado: ", ex);
-        return ResponseEntity.status(500).body("Error interno del servidor. Contáctese con EdwinSoporte.");
-    }
 }
