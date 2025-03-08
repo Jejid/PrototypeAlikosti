@@ -28,8 +28,8 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errors);
     }
 
-    @ExceptionHandler(ProductNotFoundException.class)
-    public ResponseEntity<String> handleProductNotFoundException(ProductNotFoundException ex) {
+    @ExceptionHandler(EntityNotFoundException.class)
+    public ResponseEntity<String> handleProductNotFoundException(EntityNotFoundException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
     }
 
@@ -59,7 +59,7 @@ public class GlobalExceptionHandler {
         }
         if (ex.getMessage().contains("fk_store")) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("La tienda especificada no existe.");
+                    .body("el ID de tienda especificada no existe.");
         }
 
         // Caso general para otras violaciones de integridad

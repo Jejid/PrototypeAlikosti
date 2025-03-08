@@ -1,7 +1,7 @@
 package com.example.controller;
 
-import com.example.exception.BadRequestException;
-import com.example.exception.ProductNotFoundException;
+
+import com.example.exception.EntityNotFoundException;
 import com.example.model.Product;
 import com.example.service.ProductService;
 import jakarta.validation.Valid;
@@ -33,7 +33,7 @@ public class ProductController {
     public ResponseEntity<Product> getProductById(@PathVariable Integer id) {
         return productService.getProductById(id)
                 .map(ResponseEntity::ok)
-                .orElseThrow(() -> new ProductNotFoundException("Producto con ID " + id + " no encontrado"));
+                .orElseThrow(() -> new EntityNotFoundException("Producto con ID " + id + " no encontrado"));
     }
 
     @PostMapping
@@ -52,6 +52,8 @@ public class ProductController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteProduct(@PathVariable Integer id) {
+        productService.getProductById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Producto con ID " + id + " no encontrado para eliminar"));
         productService.deleteProduct(id);
         return ResponseEntity.noContent().build();
     }
@@ -62,7 +64,7 @@ public class ProductController {
             @RequestBody Map<String, Object> updates) {
 
         Product product = productService.getProductById(id)
-                .orElseThrow(() -> new ProductNotFoundException("Producto con ID " + id + " no encontrado"));
+                .orElseThrow(() -> new EntityNotFoundException("Producto con ID " + id + " no encontrado"));
 
         updates.forEach((key, value) -> {
             try {

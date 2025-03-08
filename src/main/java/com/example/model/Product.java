@@ -21,7 +21,7 @@ public class Product {
     //ManyToOne
     //@JoinColumn(name = "category_id", nullable = false)
     private int categoryId;
-    @NotNull(message = "El ID de la tienda es obligatorio")
+    @NotNull(message = "El ID de la tienda es necesario")
     private int storeId;
 
     @Column(name = "name", length = 30, nullable = false)
