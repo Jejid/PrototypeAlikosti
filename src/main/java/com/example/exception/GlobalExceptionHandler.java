@@ -53,6 +53,21 @@ public class GlobalExceptionHandler {
 
         //Meter aquí en ifs las otras llaves que se pueden romper al crear o actulizar
 
+       //de payment
+        if (ex.getMessage().contains("payment_payment_method_id_fkey")) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("el ID de metodo de pago especificado no existe.");
+        } else
+        if (ex.getMessage().contains("fk_payment_buyer")) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("el ID de comprador especificado no existe.");
+        }
+        if (ex.getMessage().contains("check_paymentmethod_creditcard")) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Si no es método tarjeta deja vacío el campo número de tarjeta. Si es método tarjeta debes llenar el campo número de tarjeta.");
+        }
+
+        //de product
         if (ex.getMessage().contains("product_product_category_id_fkey")) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body("La categoría de producto especificada no existe.");
@@ -60,6 +75,20 @@ public class GlobalExceptionHandler {
         if (ex.getMessage().contains("fk_store")) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body("el ID de tienda especificada no existe.");
+        }
+
+        //de request_refund
+        if (ex.getMessage().contains("fk_request_buyer")) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("el ID de comprador especificado no existe.");
+        }
+        if (ex.getMessage().contains("fk_request_payment")) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("el ID de pago especificado no existe.");
+        }
+        if (ex.getMessage().contains("unique_payment_id")) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Ya existe una solicitud de reembolso con este ID");
         }
 
         // Caso general para otras violaciones de integridad

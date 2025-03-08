@@ -98,7 +98,6 @@ public class ProductController {
             }
         });
 
-
         productService.createProduct(product);
         return ResponseEntity.ok(product);
     }
