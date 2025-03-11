@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import java.util.HashMap;
 import java.util.Map;
 
+
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -52,9 +53,9 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<String> handleDataIntegrityViolationException(DataIntegrityViolationException ex) {
 
-        //Meter aquí en ifs las otras llaves que se pueden romper al crear o actulizar
 
-       //de payment
+        //Meter aquí en ifs las otras llaves que se pueden romper al crear o actulizar
+        //de payment
         if (ex.getMessage().contains("payment_payment_method_id_fkey")) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body("el ID de metodo de pago especificado no existe.");
@@ -92,9 +93,15 @@ public class GlobalExceptionHandler {
                     .body("Ya existe una solicitud de reembolso con este ID");
         }
 
+
+        if (ex.getMessage().contains("el valor es demasiado largo para el tipo character varying")) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Hay un campo tipo VarChar superando el límite de longitud, revísalo");
+        }
+
         // Caso general para otras violaciones de integridad
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body("Violación de integridad de datos. Verifica que las claves foráneas sean válidas.");
+                .body(ex.getMessage());
     }
 
     @ExceptionHandler(BadRequestException.class)
@@ -130,8 +137,6 @@ public class GlobalExceptionHandler {
 
         return new ResponseEntity<>(response, status);
     }
-
-
 
 }
 

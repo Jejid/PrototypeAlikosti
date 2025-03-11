@@ -2,7 +2,6 @@ package com.example.controller;
 
 import com.example.exception.EntityNotFoundException;
 import com.example.model.Payment;
-import com.example.model.Payment;
 import com.example.service.PaymentService;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
@@ -10,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -98,10 +98,13 @@ public class PaymentController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deletePayment(@PathVariable Integer id) {
+    public ResponseEntity<Map<String, String>>  deletePayment(@PathVariable Integer id) {
         paymentService.getPaymentById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Pago con ID " + id + " no encontrado para eliminar"));
         paymentService.deletePayment(id);
-        return ResponseEntity.noContent().build();
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "Pago eliminado exitosamente");
+
+        return ResponseEntity.ok(response);
     }
 }

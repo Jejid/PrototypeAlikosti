@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -81,10 +82,16 @@ public class RequestRefundController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteRequestRefund(@PathVariable Integer id) {
+    public ResponseEntity<Map<String, String>> deleteRequestRefund(@PathVariable Integer id) {
         requestRefundService.getRequestRefundById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Solicitud de reembolso con ID " + id + " no encontrada para eliminar"));
+
         requestRefundService.deleteRequestRefund(id);
-        return ResponseEntity.noContent().build();
+
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "Solicitud de reembolso eliminada exitosamente");
+
+        return ResponseEntity.ok(response);
     }
+
 }
