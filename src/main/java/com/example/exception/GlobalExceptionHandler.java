@@ -4,6 +4,7 @@ import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -109,6 +110,27 @@ public class GlobalExceptionHandler {
         response.put("error", "El cuerpo de la solicitud contiene un JSON malformado o inválido.");
         return ResponseEntity.badRequest().body(response);
     }
+
+    @ExceptionHandler(DataAccessException.class)
+    public ResponseEntity<Map<String, Object>> handleDataAccessException(DataAccessException ex) {
+        Map<String, Object> response = new HashMap<>();
+        HttpStatus status = HttpStatus.BAD_REQUEST;
+
+        // Extraer el mensaje del error SQL
+        String message = ex.getRootCause() != null ? ex.getRootCause().getMessage() : ex.getMessage();
+
+        // Verificar si el mensaje contiene el error del trigger
+        if (message.contains("Error: Pago No confirmado")) {
+            response.put("error", "No puedes solicitar reembolso porque el pago aún no se ha confirmado.");
+        } else if (message.contains("Error: Pago rechazado")) {
+            response.put("error", "No puedes solicitar reembolso porque el pago fue rechazado.");
+        } else {
+            response.put("error", "Error en la base de datos: " + message);
+        }
+
+        return new ResponseEntity<>(response, status);
+    }
+
 
 
 }
