@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -51,11 +52,14 @@ public class ProductController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteProduct(@PathVariable Integer id) {
+    public ResponseEntity<Map<String, String>> deleteProduct(@PathVariable Integer id) {
         productService.getProductById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Producto con ID " + id + " no encontrado para eliminar"));
         productService.deleteProduct(id);
-        return ResponseEntity.noContent().build();
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "Producto eliminado exitosamente");
+
+        return ResponseEntity.ok(response);
     }
 
     @PatchMapping("/{id}")

@@ -28,6 +28,7 @@ public class Buyer {
     @Column(name = "birth_date", length = 15)
     private String birthDate;
 
+    //cedula de ciudadania
     @Column(name = "cc", length = 12)
     private String cc;
 
