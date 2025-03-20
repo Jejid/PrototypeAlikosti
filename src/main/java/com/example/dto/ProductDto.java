@@ -1,4 +1,4 @@
-package com.example.model;
+package com.example.dto;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;
@@ -9,14 +9,14 @@ import lombok.Setter;
 
 @Setter
 @Getter
-public class Product {
+public class ProductDto {
 
-    private int id;
+    //private int id;
     private int categoryId;
     private String name;
     private int price;
     private String description;
     private int stock;
     private String pic;
-    private int storeId;
+
 }

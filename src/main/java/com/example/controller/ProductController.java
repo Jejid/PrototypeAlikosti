@@ -1,18 +1,21 @@
 package com.example.controller;
 
 
+import com.example.dao.ProductDao;
+import com.example.dto.ProductDto;
 import com.example.exception.EntityNotFoundException;
 import com.example.model.Product;
 import com.example.service.ProductService;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
+
 
 @RestController
 @RequestMapping("/api/products")
@@ -26,23 +29,62 @@ public class ProductController {
     }
 
     @GetMapping
-    public List<Product> getAllProducts() {
-        return productService.getAllProducts();
+    public ResponseEntity<List<ProductDto>> getAllProducts() {
+
+        List<ProductDto> productListDtos = new ArrayList<>();
+        List<Product> productList = productService.getAllProducts();
+        for (Product product : productList) {
+            ProductDto productDto = new ProductDto();
+            //productDto.setId(product.getId());
+            productDto.setName(product.getName());
+            productDto.setCategoryId(product.getCategoryId());
+            productDto.setPrice(product.getPrice());
+            productDto.setStock(product.getStock());
+            productDto.setDescription(product.getDescription());
+            productDto.setPic(product.getPic());
+            productListDtos.add(productDto);
+        }
+        return new ResponseEntity<>(productListDtos,HttpStatus.OK);
     }
+
 
     @GetMapping("/{id}")
-    public ResponseEntity<Product> getProductById(@PathVariable Integer id) {
-        return productService.getProductById(id)
-                .map(ResponseEntity::ok)
-                .orElseThrow(() -> new EntityNotFoundException("Producto con ID " + id + " no encontrado"));
+    public ResponseEntity<ProductDto> getProductById(@PathVariable Integer id) {
+
+        Product product = productService.getProductById(id);
+
+        ProductDto productDto = new ProductDto();
+
+        //productDto.setId(product.getId());
+        productDto.setName(product.getName());
+        productDto.setCategoryId(product.getCategoryId());
+        productDto.setPrice(product.getPrice());
+        productDto.setStock(product.getStock());
+        productDto.setDescription(product.getDescription());
+        productDto.setPic(product.getPic());
+
+        return new ResponseEntity<>(productDto,HttpStatus.OK);
     }
+
 
     @PostMapping
-    public ResponseEntity<Product> createProduct(@Valid @RequestBody Product product) {
-        Product savedProduct = productService.createProduct(product);
-        return ResponseEntity.ok(savedProduct);
-    }
+    public ResponseEntity<ProductDto> createProduct(@Valid @RequestBody Product product) {
+        
+        ProductDao savedProductDao = productService.createProduct(product);
+        ProductDto savedProductDto = new ProductDto();
 
+        savedProductDto.setName(savedProductDao.getName());
+        savedProductDto.setCategoryId(savedProductDao.getCategoryId());
+        savedProductDto.setPrice(savedProductDao.getPrice());
+        savedProductDto.setStock(savedProductDao.getStock());
+        savedProductDto.setDescription(savedProductDao.getDescription());
+        savedProductDto.setPic(savedProductDao.getPic());
+
+        
+        return ResponseEntity.ok(savedProductDto);
+    }
+    
+/*
     @PutMapping("/{id}")
     public ResponseEntity<Product> updateProduct(@PathVariable Integer id,@Valid @RequestBody Product product) {
         logger.info("Intentando actualizar el producto con ID: {}", id);
@@ -91,9 +133,6 @@ public class ProductController {
                     case "categoryId":
                         if (value instanceof Number) product.setCategoryId(((Number) value).intValue());
                         break;
-                    case "storeId":
-                        if (value instanceof Number) product.setStoreId(((Number) value).intValue());
-                        break;
                     default:
                         throw new IllegalArgumentException("El campo " + key + " no es válido o no existe para actualización.");
                 }
@@ -106,5 +145,5 @@ public class ProductController {
         return ResponseEntity.ok(product);
     }
 
-
+*/
 }

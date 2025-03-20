@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 
 @Component
-public class DataBaseTestOne implements CommandLineRunner {
+public class DataBaseTestOne  {
 
     private final ProductRepository productRepository;
 
@@ -16,6 +16,7 @@ public class DataBaseTestOne implements CommandLineRunner {
         this.productRepository = userRepository;
     }
 
+    /*
     @Override
     public void run(String... args) {
         List<Product> products = productRepository.findAll();
@@ -24,5 +25,6 @@ public class DataBaseTestOne implements CommandLineRunner {
         products.forEach(product ->
                 System.out.println("ID: " + product.getId() + " | Nombre: " + product.getName() + " | Price: " + product.getPrice())
         );
+        */
+
     }
-}
