@@ -3,7 +3,6 @@ package com.example.controller;
 
 import com.example.dao.ProductDao;
 import com.example.dto.ProductDto;
-import com.example.exception.EntityNotFoundException;
 import com.example.model.Product;
 import com.example.service.ProductService;
 import jakarta.validation.Valid;
@@ -14,7 +13,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 
 @RestController
@@ -37,6 +38,7 @@ public class ProductController {
             ProductDto productDto = new ProductDto();
             //productDto.setId(product.getId());
             productDto.setName(product.getName());
+            //productDto.setStoreId(product.getStoreId());
             productDto.setCategoryId(product.getCategoryId());
             productDto.setPrice(product.getPrice());
             productDto.setStock(product.getStock());
@@ -68,7 +70,7 @@ public class ProductController {
 
 
     @PostMapping
-    public ResponseEntity<ProductDto> createProduct(@Valid @RequestBody Product product) {
+    public ResponseEntity<Map<String, String>> createProduct(@Valid @RequestBody Product product) {
         
         ProductDao savedProductDao = productService.createProduct(product);
         ProductDto savedProductDto = new ProductDto();
@@ -80,8 +82,19 @@ public class ProductController {
         savedProductDto.setDescription(savedProductDao.getDescription());
         savedProductDto.setPic(savedProductDao.getPic());
 
-        
-        return ResponseEntity.ok(savedProductDto);
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "Producto: " + savedProductDto.getName()+ ", creado exitosamente");
+        return ResponseEntity.ok(response);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Map<String, String>> deleteProduct(@PathVariable Integer id) {
+
+        String nameProduct = productService.getProductById(id).getName();
+        productService.deleteProduct(id);
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "Producto: " +nameProduct+ ", eliminado exitosamente");
+        return ResponseEntity.ok(response);
     }
     
 /*
@@ -93,16 +106,7 @@ public class ProductController {
         return ResponseEntity.ok(updatedProduct);
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Map<String, String>> deleteProduct(@PathVariable Integer id) {
-        productService.getProductById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Producto con ID " + id + " no encontrado para eliminar"));
-        productService.deleteProduct(id);
-        Map<String, String> response = new HashMap<>();
-        response.put("message", "Producto eliminado exitosamente");
 
-        return ResponseEntity.ok(response);
-    }
 
     @PatchMapping("/{id}")
     public ResponseEntity<Product> partialUpdateProduct(

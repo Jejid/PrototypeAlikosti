@@ -46,7 +46,7 @@ public class ProductService {
 
         Optional<ProductDao> productDao = productRepository.findById(id);
 
-        ProductDao productDao1 = productDao.orElseThrow(() -> new EntityNotFoundException("Producto con ID " + id + " no encontrado"));
+        ProductDao productDao1 = productDao.orElseThrow(() -> new EntityNotFoundException("Producto con ID: " + id + ", no encontrado"));
         Product product = new Product();
         product.setId(productDao1.getId());
         product.setStoreId(productDao1.getStoreId());
@@ -64,7 +64,7 @@ public class ProductService {
         
         ProductDao productDao = new ProductDao();
         productDao.setName(product.getName());
-        //productDao.setStoreId(product.getStoreId());
+        productDao.setStoreId(1);
         productDao.setCategoryId(product.getCategoryId());
         productDao.setPrice(product.getPrice());
         productDao.setStock(product.getStock());
@@ -73,7 +73,12 @@ public class ProductService {
 
         return productRepository.save(productDao);
     }
-
+    public void deleteProduct(Integer id) {
+        if (productRepository.findById(id).isEmpty()) {
+            throw new EntityNotFoundException("Producto con ID " + id + ", no encontrado");
+        }
+        productRepository.deleteById(id);
+    }
 
 /*
     public Product updateProduct(Integer id, Product updatedProduct) {
@@ -91,7 +96,5 @@ public class ProductService {
                 .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
     }
 
-    public void deleteProduct(Integer id) {
-        productRepository.deleteById(id);
-    }*/
+   */
 }
