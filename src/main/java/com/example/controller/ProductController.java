@@ -59,6 +59,7 @@ public class ProductController {
 
         //productDto.setId(product.getId());
         productDto.setName(product.getName());
+        //productDto.setStoreId(product.getStoreId());
         productDto.setCategoryId(product.getCategoryId());
         productDto.setPrice(product.getPrice());
         productDto.setStock(product.getStock());
@@ -71,20 +72,13 @@ public class ProductController {
 
     @PostMapping
     public ResponseEntity<Map<String, String>> createProduct(@Valid @RequestBody Product product) {
-        
-        ProductDao savedProductDao = productService.createProduct(product);
-        ProductDto savedProductDto = new ProductDto();
 
-        savedProductDto.setName(savedProductDao.getName());
-        savedProductDto.setCategoryId(savedProductDao.getCategoryId());
-        savedProductDto.setPrice(savedProductDao.getPrice());
-        savedProductDto.setStock(savedProductDao.getStock());
-        savedProductDto.setDescription(savedProductDao.getDescription());
-        savedProductDto.setPic(savedProductDao.getPic());
+        productService.createProduct(product);
 
         Map<String, String> response = new HashMap<>();
-        response.put("message", "Producto: " + savedProductDto.getName()+ ", creado exitosamente");
-        return ResponseEntity.ok(response);
+        response.put("message", "Producto: " + product.getName() + " creado exitosamente");
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @DeleteMapping("/{id}")
@@ -92,22 +86,23 @@ public class ProductController {
 
         String nameProduct = productService.getProductById(id).getName();
         productService.deleteProduct(id);
+
         Map<String, String> response = new HashMap<>();
-        response.put("message", "Producto: " +nameProduct+ ", eliminado exitosamente");
+        response.put("message", "Producto: " +nameProduct+ " eliminado exitosamente");
         return ResponseEntity.ok(response);
     }
     
-/*
+
     @PutMapping("/{id}")
-    public ResponseEntity<Product> updateProduct(@PathVariable Integer id,@Valid @RequestBody Product product) {
+    public ResponseEntity<Map<String, String>> updateProduct(@PathVariable Integer id,@Valid @RequestBody Product product) {
         logger.info("Intentando actualizar el producto con ID: {}", id);
         Product updatedProduct = productService.updateProduct(id, product);
         logger.info("Producto actualizado correctamente: {}", updatedProduct);
-        return ResponseEntity.ok(updatedProduct);
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "Producto: " + product.getName() + ", actulizado exitosamente");
+        return ResponseEntity.ok(response);
     }
-
-
-
+/*
     @PatchMapping("/{id}")
     public ResponseEntity<Product> partialUpdateProduct(
             @PathVariable Integer id,

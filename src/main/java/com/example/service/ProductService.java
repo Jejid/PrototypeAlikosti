@@ -1,13 +1,11 @@
 package com.example.service;
 
 import com.example.dao.ProductDao;
-import com.example.dto.ProductDto;
 import com.example.exception.EntityNotFoundException;
 import com.example.model.Product;
 import com.example.repository.ProductRepository;
 import org.springframework.stereotype.Service;
 
-import javax.swing.text.html.Option;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -60,18 +58,27 @@ public class ProductService {
         return product;
     }
 
-    public ProductDao createProduct(Product product) {
+    public Product createProduct(Product product) {
         
-        ProductDao productDao = new ProductDao();
-        productDao.setName(product.getName());
-        productDao.setStoreId(1);
-        productDao.setCategoryId(product.getCategoryId());
-        productDao.setPrice(product.getPrice());
-        productDao.setStock(product.getStock());
-        productDao.setDescription(product.getDescription());
-        productDao.setPic(product.getPic());
+        ProductDao productToUpdate = new ProductDao();
+        productToUpdate.setName(product.getName());
+        productToUpdate.setStoreId(1);
+        productToUpdate.setCategoryId(product.getCategoryId());
+        productToUpdate.setPrice(product.getPrice());
+        productToUpdate.setStock(product.getStock());
+        productToUpdate.setDescription(product.getDescription());
+        productToUpdate.setPic(product.getPic());
 
-        return productRepository.save(productDao);
+        ProductDao createdProduct = productRepository.save(productToUpdate);
+
+        return new Product(createdProduct.getId(),
+                createdProduct.getName(),
+                createdProduct.getDescription(),
+                createdProduct.getPrice(),
+                createdProduct.getStock(),
+                createdProduct.getPic(),
+                createdProduct.getCategoryId(),
+                createdProduct.getStoreId());
     }
     public void deleteProduct(Integer id) {
         if (productRepository.findById(id).isEmpty()) {
@@ -80,21 +87,35 @@ public class ProductService {
         productRepository.deleteById(id);
     }
 
-/*
-    public Product updateProduct(Integer id, Product updatedProduct) {
-        return productRepository.findById(id)
-                .map(product -> {
-                    product.setName(updatedProduct.getName());
-                    product.setDescription(updatedProduct.getDescription());
-                    product.setPrice(updatedProduct.getPrice());
-                    product.setStock(updatedProduct.getStock());
-                    product.setPic(updatedProduct.getPic());
-                    product.setCategoryId(updatedProduct.getCategoryId());
-                    product.setStoreId(updatedProduct.getStoreId());
-                    return productRepository.save(product);
-                })
-                .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
-    }
 
-   */
-}
+    public Product updateProduct(Integer id, Product updatedProduct) {
+
+        Optional<ProductDao> optionalProductDao = productRepository.findById(id);
+
+        if (optionalProductDao.isEmpty()) {
+            throw new EntityNotFoundException("Producto con ID: " + id + " no encontrado");
+        }
+
+        ProductDao productDao = optionalProductDao.get();
+
+        productDao.setName(updatedProduct.getName());
+        productDao.setDescription(updatedProduct.getDescription());
+        productDao.setPrice(updatedProduct.getPrice());
+        productDao.setStock(updatedProduct.getStock());
+        productDao.setPic(updatedProduct.getPic());
+        productDao.setCategoryId(updatedProduct.getCategoryId());
+        productDao.setStoreId(1);
+
+        ProductDao updatedProductDao = productRepository.save(productDao);
+
+        return new Product(updatedProductDao.getId(),
+                updatedProductDao.getName(),
+                productDao.getDescription(),
+                productDao.getPrice(),
+                productDao.getStock(),
+                productDao.getPic(),
+                productDao.getCategoryId(),
+                productDao.getStoreId());
+
+       }
+    }
