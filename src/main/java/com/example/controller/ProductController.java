@@ -1,8 +1,7 @@
 package com.example.controller;
 
-
-import com.example.dao.ProductDao;
 import com.example.dto.ProductDto;
+import com.example.exception.EntityNotFoundException;
 import com.example.model.Product;
 import com.example.service.ProductService;
 import jakarta.validation.Valid;
@@ -73,10 +72,10 @@ public class ProductController {
     @PostMapping
     public ResponseEntity<Map<String, String>> createProduct(@Valid @RequestBody Product product) {
 
-        productService.createProduct(product);
+        Product productCreated = productService.createProduct(product);
 
         Map<String, String> response = new HashMap<>();
-        response.put("message", "Producto: " + product.getName() + " creado exitosamente");
+        response.put("message", "Producto: " + productCreated.getName() + " creado exitosamente");
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
@@ -95,54 +94,21 @@ public class ProductController {
 
     @PutMapping("/{id}")
     public ResponseEntity<Map<String, String>> updateProduct(@PathVariable Integer id,@Valid @RequestBody Product product) {
-        logger.info("Intentando actualizar el producto con ID: {}", id);
+        //logger.info("Intentando actualizar el producto con ID: {}", id);
         Product updatedProduct = productService.updateProduct(id, product);
-        logger.info("Producto actualizado correctamente: {}", updatedProduct);
+        //logger.info("Producto actualizado correctamente: {}", updatedProduct);
         Map<String, String> response = new HashMap<>();
-        response.put("message", "Producto: " + product.getName() + ", actulizado exitosamente");
+        response.put("message", "Producto: " + updatedProduct.getName()+ ", actualizado exitosamente");
         return ResponseEntity.ok(response);
     }
-/*
+
     @PatchMapping("/{id}")
-    public ResponseEntity<Product> partialUpdateProduct(
-            @PathVariable Integer id,
-            @RequestBody Map<String, Object> updates) {
-
-        Product product = productService.getProductById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Producto con ID " + id + " no encontrado"));
-
-        updates.forEach((key, value) -> {
-            try {
-                switch (key) {
-                    case "name":
-                        if (value instanceof String) product.setName((String) value);
-                        break;
-                    case "description":
-                        if (value instanceof String) product.setDescription((String) value);
-                        break;
-                    case "price":
-                        if (value instanceof Number) product.setPrice(((Number) value).intValue());
-                        break;
-                    case "stock":
-                        if (value instanceof Number) product.setStock(((Number) value).intValue());
-                        break;
-                    case "pic":
-                        if (value instanceof String) product.setPic((String) value);
-                        break;
-                    case "categoryId":
-                        if (value instanceof Number) product.setCategoryId(((Number) value).intValue());
-                        break;
-                    default:
-                        throw new IllegalArgumentException("El campo " + key + " no es válido o no existe para actualización.");
-                }
-            } catch (ClassCastException e) {
-                throw new IllegalArgumentException("Tipo de dato incorrecto para el campo " + key);
-            }
-        });
-
-        productService.createProduct(product);
-        return ResponseEntity.ok(product);
+    public ResponseEntity <Map<String, String>> partialUpdateProduct(@PathVariable Integer id, @RequestBody Map<String, Object> updates) {
+        Product updatedProduct = productService.partialUpdateProduct(id, updates);
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "Producto: " + updatedProduct.getName()+ ", campos actualizados exitosamente");
+        return ResponseEntity.ok(response);
     }
 
-*/
+
 }

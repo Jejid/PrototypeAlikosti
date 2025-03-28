@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -72,12 +73,12 @@ public class ProductService {
         ProductDao createdProduct = productRepository.save(productToUpdate);
 
         return new Product(createdProduct.getId(),
+                createdProduct.getCategoryId(),
                 createdProduct.getName(),
-                createdProduct.getDescription(),
                 createdProduct.getPrice(),
+                createdProduct.getDescription(),
                 createdProduct.getStock(),
                 createdProduct.getPic(),
-                createdProduct.getCategoryId(),
                 createdProduct.getStoreId());
     }
     public void deleteProduct(Integer id) {
@@ -106,16 +107,68 @@ public class ProductService {
         productDao.setCategoryId(updatedProduct.getCategoryId());
         productDao.setStoreId(1);
 
-        ProductDao updatedProductDao = productRepository.save(productDao);
+        productRepository.save(productDao);
 
-        return new Product(updatedProductDao.getId(),
-                updatedProductDao.getName(),
-                productDao.getDescription(),
+        return new Product(productDao.getId(),
+                productDao.getCategoryId(),
+                productDao.getName(),
                 productDao.getPrice(),
+                productDao.getDescription(),
                 productDao.getStock(),
                 productDao.getPic(),
-                productDao.getCategoryId(),
                 productDao.getStoreId());
-
        }
+
+       public Product partialUpdateProduct(Integer id, Map<String, Object> updates){
+
+           Optional<ProductDao> optionalProductDao = productRepository.findById(id);
+           if (optionalProductDao.isEmpty()) {
+               throw new EntityNotFoundException("Producto con ID: " + id + " no encontrado");
+           }
+
+           final ProductDao productDao = optionalProductDao.get();
+           
+           updates.forEach((key, value) -> {
+               try {
+                   switch (key) {
+                       case "name":
+                           if (value instanceof String) productDao.setName((String) value);
+                           break;
+                       case "description":
+                           if (value instanceof String) productDao.setDescription((String) value);
+                           break;
+                       case "price":
+                           if (value instanceof Number) productDao.setPrice(((Number) value).intValue());
+                           break;
+                       case "stock":
+                           if (value instanceof Number) productDao.setStock(((Number) value).intValue());
+                           break;
+                       case "pic":
+                           if (value instanceof String) productDao.setPic((String) value);
+                           break;
+                       case "categoryId":
+                           if (value instanceof Number) productDao.setCategoryId(((Number) value).intValue());
+                           break;
+                       default:
+                           throw new IllegalArgumentException("El campo " + key + " no es válido o no existe para actualización.");
+                   }
+               } catch (ClassCastException e) {
+                   throw new IllegalArgumentException("Tipo de dato incorrecto para el campo " + key);
+               }
+           });
+
+           productRepository.save(productDao);
+           //System.out.println("Producto recuperado de la BD: " + productDao1.getName()); // Agrega este log
+
+
+           return new Product(productDao.getId(),
+                   productDao.getCategoryId(),
+                   productDao.getName(),
+                   productDao.getPrice(),
+                   productDao.getDescription(),
+                   productDao.getStock(),
+                   productDao.getPic(),
+                   productDao.getStoreId());
+       }
+
     }
