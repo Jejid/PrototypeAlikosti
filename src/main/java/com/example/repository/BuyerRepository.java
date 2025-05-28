@@ -1,7 +1,9 @@
 package com.example.repository;
 
-import com.example.model.Buyer;
+import com.example.dao.BuyerDao;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
-public interface BuyerRepository extends JpaRepository<Buyer, Integer> {
+@Repository
+public interface BuyerRepository extends JpaRepository<BuyerDao, Integer> {
 }

@@ -1,11 +1,19 @@
 package com.example.controller;
 
+import com.example.dto.BuyerDto;
+import com.example.dto.ProductDto;
 import com.example.model.Buyer;
+import com.example.model.Product;
 import com.example.service.BuyerService;
+import com.example.service.ProductService;
 import jakarta.validation.Valid;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -13,6 +21,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/buyers")
 public class BuyerController {
+    private static final Logger logger = LoggerFactory.getLogger(BuyerController.class);
     private final BuyerService buyerService;
 
     public BuyerController(BuyerService buyerService) {
@@ -20,64 +29,81 @@ public class BuyerController {
     }
 
     @GetMapping
-    public List<Buyer> getAllBuyers() {
-        return buyerService.getAllBuyers();
+    public ResponseEntity<List<BuyerDto>> getAllBuyers() {
+
+        List<BuyerDto> buyerListDtos = new ArrayList<>();
+        List<Buyer> buyerList = buyerService.getAllBuyers();
+        for (Buyer buyer : buyerList) {
+            BuyerDto buyerDto = new BuyerDto();
+            //buyerDto.setId(buyer.getId());
+            buyerDto.setName(buyer.getName());
+            buyerDto.setSurname(buyer.getSurname());
+            buyerDto.setBirthDate(buyer.getBirthDate());
+            buyerDto.setCc(buyer.getCc());
+            buyerDto.setEmail(buyer.getEmail());
+            buyerListDtos.add(buyerDto);
+        }
+        return new ResponseEntity<>(buyerListDtos, HttpStatus.OK);
     }
+
 
     @GetMapping("/{id}")
-    public ResponseEntity<Buyer> getBuyerById(@PathVariable Integer id) {
-        return ResponseEntity.ok(buyerService.getBuyerById(id));
+    public ResponseEntity<BuyerDto> getBuyerById(@PathVariable Integer id) {
+
+        Buyer buyer = buyerService.getBuyerById(id);
+
+        BuyerDto buyerDto = new BuyerDto();
+        //buyerDto.setId(buyer.getId());
+        buyerDto.setName(buyer.getName());
+        buyerDto.setSurname(buyer.getSurname());
+        buyerDto.setBirthDate(buyer.getBirthDate());
+        buyerDto.setCc(buyer.getCc());
+        buyerDto.setEmail(buyer.getEmail());
+
+        return new ResponseEntity<>(buyerDto,HttpStatus.OK);
     }
+
 
     @PostMapping
-    public ResponseEntity<Buyer> createBuyer(@Valid @RequestBody Buyer buyer) {
-        return ResponseEntity.ok(buyerService.createBuyer(buyer));
-    }
+    public ResponseEntity<Map<String, String>> createBuyer(@Valid @RequestBody Buyer buyer) {
 
-    @PutMapping("/{id}")
-    public ResponseEntity<Buyer> updateBuyer(@PathVariable Integer id, @Valid @RequestBody Buyer buyer) {
-        return ResponseEntity.ok(buyerService.updateBuyer(id, buyer));
+        Buyer buyerCreated = buyerService.createBuyer(buyer);
+
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "Comprador: " + buyerCreated.getName() + " creado exitosamente");
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Map<String, String>> deleteBuyer(@PathVariable Integer id) {
-        buyerService.deleteBuyer(id);
-        Map<String, String> response = new HashMap<>();
-        response.put("message", "Comprador eliminado exitosamente");
 
+        String nameBuyer = buyerService.getBuyerById(id).getName();
+        buyerService.deleteBuyer(id);
+
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "Comprador: " +nameBuyer+ " eliminado exitosamente");
+        return ResponseEntity.ok(response);
+    }
+
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Map<String, String>> updateBuyer(@PathVariable Integer id,@Valid @RequestBody Buyer buyer) {
+        //logger.info("Intentando actualizar el buyero con ID: {}", id);
+        Buyer updatedBuyer = buyerService.updateBuyer(id, buyer);
+        //logger.info("Buyer actualizado correctamente: {}", updatedBuyer);
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "Comprador: " + updatedBuyer.getName()+ ", actualizado exitosamente");
         return ResponseEntity.ok(response);
     }
 
     @PatchMapping("/{id}")
-    public ResponseEntity<Buyer> partialUpdateBuyer(
-            @PathVariable Integer id,
-            @RequestBody Map<String, Object> updates) {
-        Buyer buyer = buyerService.getBuyerById(id);
-
-        updates.forEach((key, value) -> {
-            switch (key) {
-                case "name":
-                    if (value instanceof String) buyer.setName((String) value);
-                    break;
-                case "surname":
-                    if (value instanceof String) buyer.setSurname((String) value);
-                    break;
-                case "birthDate":
-                    if (value instanceof String) buyer.setBirthDate((String) value);
-                    break;
-                case "cc":
-                    if (value instanceof String) buyer.setCc((String) value);
-                    break;
-                case "email":
-                    if (value instanceof String) buyer.setEmail((String) value);
-                    break;
-                case "passAccount":
-                    if (value instanceof String) buyer.setPassAccount((String) value);
-                    break;
-                default:
-                    throw new IllegalArgumentException("Campo no válido para actualización: " + key);
-            }
-        });
-        return ResponseEntity.ok(buyerService.createBuyer(buyer));
+    public ResponseEntity <Map<String, String>> partialUpdateBuyer(@PathVariable Integer id, @RequestBody Map<String, Object> updates) {
+        Buyer updatedBuyer = buyerService.partialUpdateBuyer(id, updates);
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "Comprador: " + updatedBuyer.getName()+ ", campos actualizados exitosamente");
+        return ResponseEntity.ok(response);
     }
+
+
 }

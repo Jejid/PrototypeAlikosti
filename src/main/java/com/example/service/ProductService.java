@@ -132,19 +132,19 @@ public class ProductService {
                try {
                    switch (key) {
                        case "name":
-                           if (value instanceof String) productDao.setName((String) value);
+                           if (value == null || value instanceof String) productDao.setName((String) value);
                            break;
                        case "description":
-                           if (value instanceof String) productDao.setDescription((String) value);
+                           if (value == null || value instanceof String) productDao.setDescription((String) value);
                            break;
                        case "price":
-                           if (value instanceof Number) productDao.setPrice(((Number) value).intValue());
+                           if (value instanceof Integer) productDao.setPrice(((Integer) value));
                            break;
                        case "stock":
                            if (value instanceof Number) productDao.setStock(((Number) value).intValue());
                            break;
                        case "pic":
-                           if (value instanceof String) productDao.setPic((String) value);
+                           if (value == null || value instanceof String) productDao.setPic((String) value);
                            break;
                        case "categoryId":
                            if (value instanceof Number) productDao.setCategoryId(((Number) value).intValue());
@@ -159,7 +159,6 @@ public class ProductService {
 
            productRepository.save(productDao);
            //System.out.println("Producto recuperado de la BD: " + productDao1.getName()); // Agrega este log
-
 
            return new Product(productDao.getId(),
                    productDao.getCategoryId(),

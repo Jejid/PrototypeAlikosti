@@ -11,7 +11,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.NoHandlerFoundException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -136,6 +138,16 @@ public class GlobalExceptionHandler {
         }
 
         return new ResponseEntity<>(response, status);
+    }
+
+    @ExceptionHandler(NoHandlerFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public Map<String, Object> handleNoHandlerFound(NoHandlerFoundException ex) {
+        Map<String, Object> error = new HashMap<>();
+        error.put("status", 404);
+        error.put("error", "Ruta no encontrada");
+        error.put("message", "La URL '" + ex.getRequestURL() + "' no existe o está mal escrita. Verifica si escribiste mal el endpoint.");
+        return error;
     }
 
 }

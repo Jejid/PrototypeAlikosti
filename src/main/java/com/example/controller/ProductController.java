@@ -1,7 +1,6 @@
 package com.example.controller;
 
 import com.example.dto.ProductDto;
-import com.example.exception.EntityNotFoundException;
 import com.example.model.Product;
 import com.example.service.ProductService;
 import jakarta.validation.Valid;
