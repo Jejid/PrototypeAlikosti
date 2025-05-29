@@ -105,7 +105,7 @@ public class ProductController {
     public ResponseEntity <Map<String, String>> partialUpdateProduct(@PathVariable Integer id, @RequestBody Map<String, Object> updates) {
         Product updatedProduct = productService.partialUpdateProduct(id, updates);
         Map<String, String> response = new HashMap<>();
-        response.put("message", "Producto: " + updatedProduct.getName()+ ", campos actualizados exitosamente");
+        response.put("message", "Producto: " + updatedProduct.getName()+ ", campo/s actualizado/s exitosamente");
         return ResponseEntity.ok(response);
     }
 

@@ -1,23 +1,19 @@
 package com.example.controller;
 
-import com.example.exception.EntityNotFoundException;
+import com.example.dto.PaymentDto;
 import com.example.model.Payment;
 import com.example.service.PaymentService;
 import jakarta.validation.Valid;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @RestController
 @RequestMapping("/api/payments")
 public class PaymentController {
 
-    private static final Logger logger = LoggerFactory.getLogger(PaymentController.class);
     private final PaymentService paymentService;
 
     public PaymentController(PaymentService paymentService) {
@@ -25,86 +21,70 @@ public class PaymentController {
     }
 
     @GetMapping
-    public List<Payment> getAllPayments() {
-        return paymentService.getAllPayments();
+    public ResponseEntity<List<PaymentDto>> getAllPayments() {
+        List<PaymentDto> paymentDtoList = new ArrayList<>();
+        List<Payment> paymentList = paymentService.getAllPayments();
+
+        for (Payment payment : paymentList) {
+            PaymentDto dto = new PaymentDto();
+            dto.setBuyerId(payment.getBuyerId());
+            dto.setPaymentMethodId(payment.getPaymentMethodId());
+            dto.setTotalOrder(payment.getTotalOrder());
+            dto.setDate(payment.getDate());
+            dto.setConfirmation(payment.getConfirmation());
+            dto.setCodeConfirmation(payment.getCodeConfirmation());
+            dto.setCardNumber(payment.getCardNumber());
+            dto.setRefunded(payment.isRefunded());
+            paymentDtoList.add(dto);
+        }
+
+        return new ResponseEntity<>(paymentDtoList, HttpStatus.OK);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Payment> getPaymentById(@PathVariable Integer id) {
-        return paymentService.getPaymentById(id)
-                .map(ResponseEntity::ok)
-                .orElseThrow(() -> new EntityNotFoundException("Pago con ID " + id + " no encontrado"));
+    public ResponseEntity<PaymentDto> getPaymentById(@PathVariable Integer id) {
+        Payment payment = paymentService.getPaymentById(id);
+        PaymentDto dto = new PaymentDto();
+        dto.setBuyerId(payment.getBuyerId());
+        dto.setPaymentMethodId(payment.getPaymentMethodId());
+        dto.setTotalOrder(payment.getTotalOrder());
+        dto.setDate(payment.getDate());
+        dto.setConfirmation(payment.getConfirmation());
+        dto.setCodeConfirmation(payment.getCodeConfirmation());
+        dto.setCardNumber(payment.getCardNumber());
+        dto.setRefunded(payment.isRefunded());
+        return new ResponseEntity<>(dto, HttpStatus.OK);
     }
 
     @PostMapping
-    public ResponseEntity<Payment> createPayment(@Valid @RequestBody Payment payment) {
-        Payment savedPayment = paymentService.createPayment(payment);
-        return ResponseEntity.ok(savedPayment);
-    }
-
-    @PutMapping("/{id}")
-    public ResponseEntity<Payment> updatePayment(@PathVariable Integer id, @Valid @RequestBody Payment payment) {
-        logger.info("Intentando actualizar el pago con ID: {}", id);
-        Payment updatedPayment = paymentService.updatePayment(id, payment);
-        logger.info("Pago actualizado correctamente: {}", updatedPayment);
-        return ResponseEntity.ok(updatedPayment);
-    }
-
-    @PatchMapping("/{id}")
-    public ResponseEntity<Payment> partialUpdatePayment(
-            @PathVariable Integer id,
-            @RequestBody Map<String, Object> updates) {
-
-        Payment payment = paymentService.getPaymentById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Pago con ID " + id + " no encontrado"));
-
-        updates.forEach((key, value) -> {
-            try {
-                switch (key) {
-                    case "buyerId":
-                        if (value instanceof Number) payment.setBuyerId(((Number) value).intValue());
-                        break;
-                    case "paymentMethodId":
-                        if (value instanceof Number) payment.setPaymentMethodId(((Number) value).intValue());
-                        break;
-                    case "totalOrder":
-                        if (value instanceof Number) payment.setTotalOrder(((Number) value).intValue());
-                        break;
-                    case "date":
-                        if (value instanceof String) payment.setDate((String) value);
-                        break;
-                    case "confirmation":
-                        if (value instanceof Number) payment.setConfirmation(((Number) value).intValue());
-                        break;
-                    case "codeConfirmation":
-                        if (value instanceof Number) payment.setCodeConfirmation(((Number) value).intValue());
-                        break;
-                    case "cardNumber":
-                        if (value instanceof String) payment.setCardNumber((String) value);
-                        break;
-                    case "refunded":
-                        if (value instanceof Boolean) payment.setRefunded((Boolean) value);
-                        break;
-                    default:
-                        throw new IllegalArgumentException("El campo " + key + " no es válido o no existe para actualización.");
-                }
-            } catch (ClassCastException e) {
-                throw new IllegalArgumentException("Tipo de dato incorrecto para el campo " + key);
-            }
-        });
-
-        paymentService.createPayment(payment);
-        return ResponseEntity.ok(payment);
+    public ResponseEntity<Map<String, String>> createPayment(@Valid @RequestBody Payment payment) {
+        Payment created = paymentService.createPayment(payment);
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "Pago creado exitosamente con ID: " + created.getId());
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Map<String, String>>  deletePayment(@PathVariable Integer id) {
-        paymentService.getPaymentById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Pago con ID " + id + " no encontrado para eliminar"));
+    public ResponseEntity<Map<String, String>> deletePayment(@PathVariable Integer id) {
         paymentService.deletePayment(id);
         Map<String, String> response = new HashMap<>();
-        response.put("message", "Pago eliminado exitosamente");
+        response.put("message", "Pago con ID: " + id + " eliminado exitosamente");
+        return ResponseEntity.ok(response);
+    }
 
+    @PutMapping("/{id}")
+    public ResponseEntity<Map<String, String>> updatePayment(@PathVariable Integer id, @Valid @RequestBody Payment payment) {
+        Payment updated = paymentService.updatePayment(id, payment);
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "Pago con ID: " + updated.getId() + ", actualizado exitosamente");
+        return ResponseEntity.ok(response);
+    }
+
+    @PatchMapping("/{id}")
+    public ResponseEntity<Map<String, String>> partialUpdatePayment(@PathVariable Integer id, @RequestBody Map<String, Object> updates) {
+        Payment updated = paymentService.partialUpdatePayment(id, updates);
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "Pago con ID: " + updated.getId() + ", campo/s actualizado/s exitosamente");
         return ResponseEntity.ok(response);
     }
 }

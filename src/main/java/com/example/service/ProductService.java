@@ -60,17 +60,17 @@ public class ProductService {
     }
 
     public Product createProduct(Product product) {
-        
-        ProductDao productToUpdate = new ProductDao();
-        productToUpdate.setName(product.getName());
-        productToUpdate.setStoreId(1);
-        productToUpdate.setCategoryId(product.getCategoryId());
-        productToUpdate.setPrice(product.getPrice());
-        productToUpdate.setStock(product.getStock());
-        productToUpdate.setDescription(product.getDescription());
-        productToUpdate.setPic(product.getPic());
 
-        ProductDao createdProduct = productRepository.save(productToUpdate);
+        ProductDao productToUpload = new ProductDao();
+        productToUpload.setName(product.getName());
+        productToUpload.setStoreId(1);
+        productToUpload.setCategoryId(product.getCategoryId());
+        productToUpload.setPrice(product.getPrice());
+        productToUpload.setStock(product.getStock());
+        productToUpload.setDescription(product.getDescription());
+        productToUpload.setPic(product.getPic());
+
+        ProductDao createdProduct = productRepository.save(productToUpload);
 
         return new Product(createdProduct.getId(),
                 createdProduct.getCategoryId(),
@@ -117,57 +117,57 @@ public class ProductService {
                 productDao.getStock(),
                 productDao.getPic(),
                 productDao.getStoreId());
-       }
-
-       public Product partialUpdateProduct(Integer id, Map<String, Object> updates){
-
-           Optional<ProductDao> optionalProductDao = productRepository.findById(id);
-           if (optionalProductDao.isEmpty()) {
-               throw new EntityNotFoundException("Producto con ID: " + id + " no encontrado");
-           }
-
-           final ProductDao productDao = optionalProductDao.get();
-           
-           updates.forEach((key, value) -> {
-               try {
-                   switch (key) {
-                       case "name":
-                           if (value == null || value instanceof String) productDao.setName((String) value);
-                           break;
-                       case "description":
-                           if (value == null || value instanceof String) productDao.setDescription((String) value);
-                           break;
-                       case "price":
-                           if (value instanceof Integer) productDao.setPrice(((Integer) value));
-                           break;
-                       case "stock":
-                           if (value instanceof Number) productDao.setStock(((Number) value).intValue());
-                           break;
-                       case "pic":
-                           if (value == null || value instanceof String) productDao.setPic((String) value);
-                           break;
-                       case "categoryId":
-                           if (value instanceof Number) productDao.setCategoryId(((Number) value).intValue());
-                           break;
-                       default:
-                           throw new IllegalArgumentException("El campo " + key + " no es válido o no existe para actualización.");
-                   }
-               } catch (ClassCastException e) {
-                   throw new IllegalArgumentException("Tipo de dato incorrecto para el campo " + key);
-               }
-           });
-
-           productRepository.save(productDao);
-           //System.out.println("Producto recuperado de la BD: " + productDao1.getName()); // Agrega este log
-
-           return new Product(productDao.getId(),
-                   productDao.getCategoryId(),
-                   productDao.getName(),
-                   productDao.getPrice(),
-                   productDao.getDescription(),
-                   productDao.getStock(),
-                   productDao.getPic(),
-                   productDao.getStoreId());
-       }
-
     }
+
+    public Product partialUpdateProduct(Integer id, Map<String, Object> updates){
+
+        Optional<ProductDao> optionalProductDao = productRepository.findById(id);
+        if (optionalProductDao.isEmpty()) {
+            throw new EntityNotFoundException("Producto con ID: " + id + " no encontrado");
+        }
+
+        final ProductDao productDao = optionalProductDao.get();
+
+        updates.forEach((key, value) -> {
+            try {
+                switch (key) {
+                    case "name":
+                        if (value == null || value instanceof String) productDao.setName((String) value);
+                        break;
+                    case "description":
+                        if (value == null || value instanceof String) productDao.setDescription((String) value);
+                        break;
+                    case "price":
+                        if (value instanceof Integer) productDao.setPrice(((Integer) value));
+                        break;
+                    case "stock":
+                        if (value instanceof Number) productDao.setStock(((Number) value).intValue());
+                        break;
+                    case "pic":
+                        if (value == null || value instanceof String) productDao.setPic((String) value);
+                        break;
+                    case "categoryId":
+                        if (value instanceof Number) productDao.setCategoryId(((Number) value).intValue());
+                        break;
+                    default:
+                        throw new IllegalArgumentException("El campo " + key + " no es válido o no existe para actualización.");
+                }
+            } catch (ClassCastException e) {
+                throw new IllegalArgumentException("Tipo de dato incorrecto para el campo " + key);
+            }
+        });
+
+        productRepository.save(productDao);
+        //System.out.println("Producto recuperado de la BD: " + productDao1.getName()); // Agrega este log
+
+        return new Product(productDao.getId(),
+                productDao.getCategoryId(),
+                productDao.getName(),
+                productDao.getPrice(),
+                productDao.getDescription(),
+                productDao.getStock(),
+                productDao.getPic(),
+                productDao.getStoreId());
+    }
+
+}

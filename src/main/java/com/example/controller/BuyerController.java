@@ -101,7 +101,7 @@ public class BuyerController {
     public ResponseEntity <Map<String, String>> partialUpdateBuyer(@PathVariable Integer id, @RequestBody Map<String, Object> updates) {
         Buyer updatedBuyer = buyerService.partialUpdateBuyer(id, updates);
         Map<String, String> response = new HashMap<>();
-        response.put("message", "Comprador: " + updatedBuyer.getName()+ ", campos actualizados exitosamente");
+        response.put("message", "Comprador: " + updatedBuyer.getName()+ ", campo/s actualizado/s exitosamente");
         return ResponseEntity.ok(response);
     }
 

@@ -70,6 +70,10 @@ public class GlobalExceptionHandler {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body("Si no es método tarjeta deja vacío el campo número de tarjeta. Si es método tarjeta debes llenar el campo número de tarjeta.");
         }
+        if (ex.getMessage().contains("check_code_confirmation_not_null")) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Al aprobarse el pago confirmation=1, el código de confirmación debe agregarse, no puede ser nulo");
+        }
 
         //de product
         if (ex.getMessage().contains("product_product_category_id_fkey")) {
