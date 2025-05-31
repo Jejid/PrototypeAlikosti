@@ -96,9 +96,14 @@ public class GlobalExceptionHandler {
         }
         if (ex.getMessage().contains("unique_payment_id")) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("Ya existe una solicitud de reembolso con este ID");
+                    .body("Ya existe una solicitud de reembolso con este ID de pago");
         }
 
+        //de credit_card
+        if (ex.getMessage().contains("idx_unique_card_for_buyer")) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Ya existe una tarjeta con ese número registrada para este comprador.");
+        }
 
         if (ex.getMessage().contains("el valor es demasiado largo para el tipo character varying")) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)

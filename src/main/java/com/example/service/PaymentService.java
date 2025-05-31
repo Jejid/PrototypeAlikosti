@@ -41,25 +41,23 @@ public class PaymentService {
     }
 
     public Payment getPaymentById(Integer id) {
-        Optional<PaymentDao> paymentDao = paymentRepository.findById(id);
+        PaymentDao paymentDao1 = paymentRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Pago con ID: " + id + ", no encontrado"));
 
-        PaymentDao paymentDao1 = paymentDao.orElseThrow(() -> new EntityNotFoundException("Pago con ID: " + id + ", no encontrado"));
-
-        Payment payment = new Payment();
-        payment.setId(paymentDao1.getId());
-        payment.setBuyerId(paymentDao1.getBuyerId());
-        payment.setPaymentMethodId(paymentDao1.getPaymentMethodId());
-        payment.setTotalOrder(paymentDao1.getTotalOrder());
-        payment.setDate(paymentDao1.getDate());
-        payment.setConfirmation(paymentDao1.getConfirmation());
-        payment.setCodeConfirmation(paymentDao1.getCodeConfirmation());
-        payment.setCardNumber(paymentDao1.getCardNumber());
-        payment.setRefunded(paymentDao1.isRefunded());
-
-        return payment;
+        return new Payment(
+                paymentDao1.getId(),
+                paymentDao1.getBuyerId(),
+                paymentDao1.getPaymentMethodId(),
+                paymentDao1.getTotalOrder(),
+                paymentDao1.getDate(),
+                paymentDao1.getConfirmation(),
+                paymentDao1.getCodeConfirmation(),
+                paymentDao1.getCardNumber(),
+                paymentDao1.isRefunded()
+        );
     }
 
     public Payment createPayment(Payment payment) {
+
         PaymentDao paymentToUpload = new PaymentDao();
 
         paymentToUpload.setBuyerId(payment.getBuyerId());

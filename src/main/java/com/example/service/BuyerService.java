@@ -1,10 +1,8 @@
 package com.example.service;
 
 import com.example.dao.BuyerDao;
-import com.example.dao.ProductDao;
-import com.example.exception.EntityNotFoundException;
 import com.example.model.Buyer;
-import com.example.model.Product;
+import com.example.exception.EntityNotFoundException;
 import com.example.repository.BuyerRepository;
 import org.springframework.stereotype.Service;
 
@@ -43,6 +41,7 @@ public class BuyerService {
         Optional<BuyerDao> buyerDao = buyerRepository.findById(id);
 
         BuyerDao buyerDao1 = buyerDao.orElseThrow(() -> new EntityNotFoundException("Comprador con ID: " + id + ", no encontrado"));
+
         Buyer buyer = new Buyer();
         buyer.setId(buyerDao1.getId());
         buyer.setName(buyerDao1.getName());
@@ -56,7 +55,9 @@ public class BuyerService {
     }
 
     public Buyer createBuyer(Buyer buyer) {
+
         BuyerDao buyerToUpload = new BuyerDao();
+
         buyerToUpload.setName(buyer.getName());
         buyerToUpload.setSurname(buyer.getSurname());
         buyerToUpload.setBirthDate(buyer.getBirthDate());

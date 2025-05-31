@@ -1,22 +1,20 @@
 package com.example.controller;
 
-import com.example.exception.EntityNotFoundException;
+import com.example.dto.RequestRefundDto;
 import com.example.model.RequestRefund;
 import com.example.service.RequestRefundService;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @RestController
-@RequestMapping("/api/request-refunds")
+@RequestMapping("/api/refunds")
 public class RequestRefundController {
-
     private static final Logger logger = LoggerFactory.getLogger(RequestRefundController.class);
     private final RequestRefundService requestRefundService;
 
@@ -25,73 +23,69 @@ public class RequestRefundController {
     }
 
     @GetMapping
-    public List<RequestRefund> getAllRequestRefunds() {
-        return requestRefundService.getAllRequestRefunds();
+    public ResponseEntity<List<RequestRefundDto>> getAllRefunds() {
+        List<RequestRefundDto> refundDtos = new ArrayList<>();
+        List<RequestRefund> refundList = requestRefundService.getAllRefunds();
+
+        for (RequestRefund refund : refundList) {
+            RequestRefundDto dto = new RequestRefundDto();
+            //dto.setId(refund.getId());
+            dto.setBuyerId(refund.getBuyerId());
+            dto.setPaymentId(refund.getPaymentId());
+            dto.setConfirmation(refund.getConfirmation());
+            dto.setRefundType(refund.getRefundType());
+            refundDtos.add(dto);
+        }
+
+        return new ResponseEntity<>(refundDtos, HttpStatus.OK);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<RequestRefund> getRequestRefundById(@PathVariable Integer id) {
-        return requestRefundService.getRequestRefundById(id)
-                .map(ResponseEntity::ok)
-                .orElseThrow(() -> new EntityNotFoundException("Solicitud de reembolso con ID " + id + " no encontrada"));
+    public ResponseEntity<RequestRefundDto> getRefundById(@PathVariable Integer id) {
+        RequestRefund refund = requestRefundService.getRefundById(id);
+
+        RequestRefundDto dto = new RequestRefundDto();
+        //dto.setId(refund.getId());
+        dto.setBuyerId(refund.getBuyerId());
+        dto.setPaymentId(refund.getPaymentId());
+        dto.setConfirmation(refund.getConfirmation());
+        dto.setRefundType(refund.getRefundType());
+
+        return new ResponseEntity<>(dto, HttpStatus.OK);
     }
 
     @PostMapping
-    public ResponseEntity<RequestRefund> createRequestRefund(@Valid @RequestBody RequestRefund requestRefund) {
-        RequestRefund savedRequestRefund = requestRefundService.createRequestRefund(requestRefund);
-        return ResponseEntity.ok(savedRequestRefund);
-    }
+    public ResponseEntity<Map<String, String>> createRefund(@Valid @RequestBody RequestRefund refund) {
+        RequestRefund created = requestRefundService.createRefund(refund);
 
-    @PutMapping("/{id}")
-    public ResponseEntity<RequestRefund> updateRequestRefund(@PathVariable Integer id, @Valid @RequestBody RequestRefund requestRefund) {
-        logger.info("Intentando actualizar la solicitud de reembolso con ID: {}", id);
-        RequestRefund updatedRequestRefund = requestRefundService.updateRequestRefund(id, requestRefund);
-        logger.info("Solicitud de reembolso actualizada correctamente: {}", updatedRequestRefund);
-        return ResponseEntity.ok(updatedRequestRefund);
-    }
-
-    @PatchMapping("/{id}")
-    public ResponseEntity<RequestRefund> partialUpdateRequestRefund(
-            @PathVariable Integer id,
-            @RequestBody Map<String, Object> updates) {
-
-        RequestRefund requestRefund = requestRefundService.getRequestRefundById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Solicitud de reembolso con ID " + id + " no encontrada"));
-
-        updates.forEach((key, value) -> {
-            switch (key) {
-                case "buyerId":
-                    if (value instanceof Number) requestRefund.setBuyerId(((Number) value).intValue());
-                    break;
-                case "paymentId":
-                    if (value instanceof Number) requestRefund.setPaymentId(((Number) value).intValue());
-                    break;
-                case "confirmation":
-                    if (value instanceof Number) requestRefund.setConfirmation(((Number) value).intValue());
-                    break;
-                case "refundType":
-                    if (value instanceof Number) requestRefund.setRefundType(((Number) value).intValue());
-                    break;
-                default:
-                    throw new IllegalArgumentException("El campo " + key + " no es válido o no existe para actualización.");
-            }
-        });
-
-        requestRefundService.createRequestRefund(requestRefund);
-        return ResponseEntity.ok(requestRefund);
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "Reembolso con ID: " + created.getId() + " creado exitosamente");
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Map<String, String>> deleteRequestRefund(@PathVariable Integer id) {
-        requestRefundService.getRequestRefundById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Solicitud de reembolso con ID " + id + " no encontrada para eliminar"));
-
-        requestRefundService.deleteRequestRefund(id);
-
+    public ResponseEntity<Map<String, String>> deleteRefund(@PathVariable Integer id) {
+        requestRefundService.deleteRefund(id);
         Map<String, String> response = new HashMap<>();
-        response.put("message", "Solicitud de reembolso eliminada exitosamente");
-
+        response.put("message", "Reembolso con ID " + id + " eliminado exitosamente");
         return ResponseEntity.ok(response);
     }
 
+    @PutMapping("/{id}")
+    public ResponseEntity<Map<String, String>> updateRefund(@PathVariable Integer id, @Valid @RequestBody RequestRefund refund) {
+        RequestRefund updated = requestRefundService.updateRefund(id, refund);
+
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "Reembolso con ID " + updated.getId() + " actualizado exitosamente");
+        return ResponseEntity.ok(response);
+    }
+
+    @PatchMapping("/{id}")
+    public ResponseEntity<Map<String, String>> partialUpdateRefund(@PathVariable Integer id, @RequestBody Map<String, Object> updates) {
+        RequestRefund updated = requestRefundService.partialUpdateRefund(id, updates);
+
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "Reembolso con ID " + updated.getId() + " actualizado parcialmente con éxito");
+        return ResponseEntity.ok(response);
+    }
 }

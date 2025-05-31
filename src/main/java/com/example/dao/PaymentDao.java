@@ -3,6 +3,7 @@ package com.example.dao;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
@@ -28,7 +29,7 @@ public class PaymentDao {
     private int totalOrder;
 
     @Column(length = 10, nullable = false)
-    @NotNull(message = "La fecha de pago es obligatoria")
+    @NotBlank(message = "La fecha de pago es obligatoria")
     private String date;
 
     @NotNull(message = "El estado de confirmación es obligatorio")

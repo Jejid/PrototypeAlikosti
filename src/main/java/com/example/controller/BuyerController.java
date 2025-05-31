@@ -1,11 +1,8 @@
 package com.example.controller;
 
 import com.example.dto.BuyerDto;
-import com.example.dto.ProductDto;
 import com.example.model.Buyer;
-import com.example.model.Product;
 import com.example.service.BuyerService;
-import com.example.service.ProductService;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
