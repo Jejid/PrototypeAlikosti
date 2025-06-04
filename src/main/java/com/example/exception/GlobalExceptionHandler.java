@@ -99,6 +99,13 @@ public class GlobalExceptionHandler {
                     .body("Ya existe una solicitud de reembolso con este ID de pago");
         }
 
+        //de product_category
+        if (ex.getMessage().contains("fk_store_pcategory")) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("el ID de tienda especificado no existe.");
+        }
+
+
         //de credit_card
         if (ex.getMessage().contains("idx_unique_card_for_buyer")) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
