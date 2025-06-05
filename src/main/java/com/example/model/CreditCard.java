@@ -7,19 +7,17 @@ import lombok.Setter;
 @Setter
 @Getter
 
-public class CreditCard {
+    public class CreditCard {
 
-    private int id;
-    private int buyerId;
-    private String name;
-    private String cardNumber;
-    private String cardDate;
-    private int cvcCode;
-    private String tokenizedCode;
-    private String bank;
+        private int id;
+        private int buyerId;
+        private String name;
+        private String cardNumber;
+        private String cardDate;
+        private int cvcCode;
+        private String tokenizedCode;
+        private String bank;
 
-    public CreditCard() {
-    }
 
     public CreditCard(int id, int buyerId, String name, String cardNumber, String cardDate, int cvcCode, String tokenizedCode, String bank) {
         this.id = id;

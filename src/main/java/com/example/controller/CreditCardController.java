@@ -1,5 +1,6 @@
 package com.example.controller;
 
+import com.example.dto.CreditCardDto;
 import com.example.model.CreditCard;
 import com.example.service.CreditCardService;
 import jakarta.validation.Valid;
@@ -20,53 +21,69 @@ public class CreditCardController {
     }
 
     @GetMapping
-    public ResponseEntity<List<CreditCard>> getAllCreditCards() {
-        List<CreditCard> list = creditCardService.getAllCreditCards();
-        return ResponseEntity.ok(list);
+    public ResponseEntity<List<CreditCardDto>> getAllCreditCards() {
+        List<CreditCard> cards = creditCardService.getAllCreditCards();
+        List<CreditCardDto> cardDtos = new ArrayList<>();
+
+        for (CreditCard card : cards) {
+            CreditCardDto dto = new CreditCardDto();
+            dto.setName(card.getName());
+            dto.setBank(card.getBank());
+            cardDtos.add(dto);
+        }
+
+        return new ResponseEntity<>(cardDtos, HttpStatus.OK);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<CreditCard> getCreditCardById(@PathVariable Integer id) {
+    public ResponseEntity<CreditCardDto> getCreditCardById(@PathVariable Integer id) {
         CreditCard card = creditCardService.getCreditCardById(id);
-        return ResponseEntity.ok(card);
+        CreditCardDto dto = new CreditCardDto();
+        dto.setName(card.getName());
+        dto.setBank(card.getBank());
+
+        return new ResponseEntity<>(dto, HttpStatus.OK);
     }
 
     @PostMapping
-    public ResponseEntity<Map<String, String>> createCreditCard(@Valid @RequestBody CreditCard creditCard) {
-        CreditCard created = creditCardService.createCreditCard(creditCard);
+    public ResponseEntity<Map<String, String>> createCreditCard(@Valid @RequestBody CreditCard card) {
+        CreditCard created = creditCardService.createCreditCard(card);
 
         Map<String, String> response = new HashMap<>();
-        response.put("message", "Tarjeta de crédito creada exitosamente con ID: " + created.getId());
+        response.put("message", "Tarjeta de crédito de: " + created.getName() + " creada exitosamente");
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Map<String, String>> updateCreditCard(@PathVariable Integer id, @Valid @RequestBody CreditCard creditCard) {
-        CreditCard updated = creditCardService.updateCreditCard(id, creditCard);
+    public ResponseEntity<Map<String, String>> updateCreditCard(@PathVariable Integer id,
+                                                                @Valid @RequestBody CreditCard card) {
+        CreditCard updated = creditCardService.updateCreditCard(id, card);
 
         Map<String, String> response = new HashMap<>();
-        response.put("message", "Tarjeta de crédito actualizada exitosamente para el comprador ID: " + updated.getBuyerId());
+        response.put("message", "Tarjeta de crédito de: " + updated.getName() + " actualizada exitosamente");
 
         return ResponseEntity.ok(response);
     }
 
     @PatchMapping("/{id}")
-    public ResponseEntity<Map<String, String>> partialUpdateCreditCard(@PathVariable Integer id, @RequestBody Map<String, Object> updates) {
+    public ResponseEntity<Map<String, String>> partialUpdateCreditCard(@PathVariable Integer id,
+                                                                       @RequestBody Map<String, Object> updates) {
         CreditCard updated = creditCardService.partialUpdateCreditCard(id, updates);
 
         Map<String, String> response = new HashMap<>();
-        response.put("message", "Tarjeta de crédito actualizada parcialmente para el comprador ID: " + updated.getBuyerId());
+        response.put("message", "Tarjeta de crédito de: " + updated.getName() + " campo/s actualizado/s exitosamente");
 
         return ResponseEntity.ok(response);
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Map<String, String>> deleteCreditCard(@PathVariable Integer id) {
+        String name = creditCardService.getCreditCardById(id).getName();
         creditCardService.deleteCreditCard(id);
 
         Map<String, String> response = new HashMap<>();
-        response.put("message", "Tarjeta de crédito con ID " + id + " eliminada exitosamente");
+        response.put("message", "Tarjeta de crédito de: " + name + " eliminada exitosamente");
 
         return ResponseEntity.ok(response);
     }

@@ -13,7 +13,7 @@ public class BuyerDto {
     private String name;
     private String surname;
     private String birthDate;
-    private String cc;
+    //private String cc;
     private String email;
     //private String passAccount;
 }

@@ -36,7 +36,7 @@ public class BuyerController {
             buyerDto.setName(buyer.getName());
             buyerDto.setSurname(buyer.getSurname());
             buyerDto.setBirthDate(buyer.getBirthDate());
-            buyerDto.setCc(buyer.getCc());
+            //buyerDto.setCc(buyer.getCc());
             buyerDto.setEmail(buyer.getEmail());
             buyerListDtos.add(buyerDto);
         }
@@ -54,7 +54,7 @@ public class BuyerController {
         buyerDto.setName(buyer.getName());
         buyerDto.setSurname(buyer.getSurname());
         buyerDto.setBirthDate(buyer.getBirthDate());
-        buyerDto.setCc(buyer.getCc());
+        //buyerDto.setCc(buyer.getCc());
         buyerDto.setEmail(buyer.getEmail());
 
         return new ResponseEntity<>(buyerDto,HttpStatus.OK);
