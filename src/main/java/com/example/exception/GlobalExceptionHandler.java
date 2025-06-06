@@ -33,15 +33,21 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(EntityNotFoundException.class)
-    public ResponseEntity<String> handleProductNotFoundException(EntityNotFoundException ex) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
+    public ResponseEntity<Map<String, String>> handleProductNotFoundException(EntityNotFoundException ex) {
+        Map<String, String> error = new HashMap<>();
+        error.put("error", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
     }
 
+
     @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<String> handleIllegalArgumentException(IllegalArgumentException ex) {
-        logger.error("Error de argumento invalido: {}", ex.getMessage());
-        return ResponseEntity.status(400).body("Solicitud inválida: " + ex.getMessage());
+    public ResponseEntity<Map<String, String>> handleIllegalArgumentException(IllegalArgumentException ex) {
+        logger.error("Error de argumento inválido: {}", ex.getMessage());
+        Map<String, String> error = new HashMap<>();
+        error.put("error", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
+
 
     @ExceptionHandler(ConstraintViolationException.class)
     public ResponseEntity<Map<String, String>> handleConstraintViolationException(ConstraintViolationException ex) {
@@ -53,74 +59,65 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(DataIntegrityViolationException.class)
-    public ResponseEntity<String> handleDataIntegrityViolationException(DataIntegrityViolationException ex) {
+    public ResponseEntity<Map<String, String>> handleDataIntegrityViolationException(DataIntegrityViolationException ex) {
+        Map<String, String> response = new HashMap<>();
 
+            // Meter aquí en ifs las otras llaves que se pueden romper al crear o actualizar
 
-        //Meter aquí en ifs las otras llaves que se pueden romper al crear o actulizar
-        //de payment
+           // de payment
         if (ex.getMessage().contains("payment_payment_method_id_fkey")) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("el ID de metodo de pago especificado no existe.");
-        } else
-        if (ex.getMessage().contains("fk_payment_buyer")) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("el ID de comprador especificado no existe.");
-        }
-        if (ex.getMessage().contains("check_paymentmethod_creditcard")) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("Si no es método tarjeta deja vacío el campo número de tarjeta. Si es método tarjeta debes llenar el campo número de tarjeta.");
-        }
-        if (ex.getMessage().contains("check_code_confirmation_not_null")) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("Al aprobarse el pago confirmation=1, el código de confirmación debe agregarse, no puede ser nulo");
+            response.put("error", "el ID de metodo de pago especificado no existe.");
+        } else if (ex.getMessage().contains("fk_payment_buyer")) {
+            response.put("error", "el ID de comprador especificado no existe.");
+        } else if (ex.getMessage().contains("check_paymentmethod_creditcard")) {
+            response.put("error", "Si no es método tarjeta deja vacío el campo número de tarjeta. Si es método tarjeta debes llenar el campo número de tarjeta.");
+        } else if (ex.getMessage().contains("check_code_confirmation_not_null")) {
+            response.put("error", "Al aprobarse el pago confirmation=1, el código de confirmación debe agregarse, no puede ser nulo");
+
+            // de product
+        } else if (ex.getMessage().contains("product_product_category_id_fkey")) {
+            response.put("error", "La categoría de producto especificada no existe.");
+        } else if (ex.getMessage().contains("fk_store")) {
+            response.put("error", "el ID de tienda especificada no existe.");
+
+            // de request_refund
+        } else if (ex.getMessage().contains("fk_request_buyer")) {
+            response.put("error", "el ID de comprador especificado no existe.");
+        } else if (ex.getMessage().contains("fk_request_payment")) {
+            response.put("error", "el ID de pago especificado no existe.");
+        } else if (ex.getMessage().contains("unique_payment_id")) {
+            response.put("error", "Ya existe una solicitud de reembolso con este ID de pago");
+
+            // de product_category
+        } else if (ex.getMessage().contains("fk_store_pcategory")) {
+            response.put("error", "el ID de tienda especificado no existe.");
+
+            // de credit_card
+        } else if (ex.getMessage().contains("idx_unique_card_for_buyer")) {
+            response.put("error", "Ya existe una tarjeta con ese número registrada para este comprador.");
+        } else if (ex.getMessage().contains("fk_buyer_creditcard")) {
+            response.put("error", "el ID de comprador especificado no existe.");
+
+            // de shoppingcart_order
+        } else if (ex.getMessage().contains("fk_buyer_shoppingcart")) {
+            response.put("error", "el ID de comprador especificado no existe.");
+        } else if (ex.getMessage().contains("fk_product_shoppingcart")) {
+            response.put("error", "el ID de producto especificado no existe.");
+        } else if (ex.getMessage().contains("unique_item_shoppingcart")) {
+            response.put("error", "Ya existe una entrada a la Orden de comprador y producto con esa combinación");
+
+            // caso de un campo largo
+        } else if (ex.getMessage().contains("el valor es demasiado largo para el tipo character varying")) {
+            response.put("error", "Hay un campo tipo VarChar superando el límite de longitud, revísalo");
+        } else {
+
+            // Caso general para otras violaciones de integridad
+            response.put("error", ex.getMessage());
         }
 
-        //de product
-        if (ex.getMessage().contains("product_product_category_id_fkey")) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("La categoría de producto especificada no existe.");
-        }
-        if (ex.getMessage().contains("fk_store")) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("el ID de tienda especificada no existe.");
-        }
-
-        //de request_refund
-        if (ex.getMessage().contains("fk_request_buyer")) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("el ID de comprador especificado no existe.");
-        }
-        if (ex.getMessage().contains("fk_request_payment")) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("el ID de pago especificado no existe.");
-        }
-        if (ex.getMessage().contains("unique_payment_id")) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("Ya existe una solicitud de reembolso con este ID de pago");
-        }
-
-        //de product_category
-        if (ex.getMessage().contains("fk_store_pcategory")) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("el ID de tienda especificado no existe.");
-        }
-
-
-        //de credit_card
-        if (ex.getMessage().contains("idx_unique_card_for_buyer")) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("Ya existe una tarjeta con ese número registrada para este comprador.");
-        }
-
-        if (ex.getMessage().contains("el valor es demasiado largo para el tipo character varying")) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("Hay un campo tipo VarChar superando el límite de longitud, revísalo");
-        }
-
-        // Caso general para otras violaciones de integridad
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(ex.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
+
 
     @ExceptionHandler(BadRequestException.class)
     public ResponseEntity<Map<String, String>> handleBadRequest(BadRequestException ex) {
