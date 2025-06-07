@@ -62,57 +62,63 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, String>> handleDataIntegrityViolationException(DataIntegrityViolationException ex) {
         Map<String, String> response = new HashMap<>();
 
-            // Meter aquí en ifs las otras llaves que se pueden romper al crear o actualizar
+        String message = ex.getRootCause() != null ? ex.getRootCause().getMessage() : ex.getMessage();
+
+        // Meter aquí en ifs las otras llaves que se pueden romper al crear o actualizar
 
            // de payment
-        if (ex.getMessage().contains("payment_payment_method_id_fkey")) {
+        if (message.contains("payment_payment_method_id_fkey")) {
             response.put("error", "el ID de metodo de pago especificado no existe.");
-        } else if (ex.getMessage().contains("fk_payment_buyer")) {
+        } else if (message.contains("fk_payment_buyer")) {
             response.put("error", "el ID de comprador especificado no existe.");
-        } else if (ex.getMessage().contains("check_paymentmethod_creditcard")) {
+        } else if (message.contains("check_paymentmethod_creditcard")) {
             response.put("error", "Si no es método tarjeta deja vacío el campo número de tarjeta. Si es método tarjeta debes llenar el campo número de tarjeta.");
-        } else if (ex.getMessage().contains("check_code_confirmation_not_null")) {
+        } else if (message.contains("check_code_confirmation_not_null")) {
             response.put("error", "Al aprobarse el pago confirmation=1, el código de confirmación debe agregarse, no puede ser nulo");
 
             // de product
-        } else if (ex.getMessage().contains("product_product_category_id_fkey")) {
+        } else if (message.contains("product_product_category_id_fkey")) {
             response.put("error", "La categoría de producto especificada no existe.");
-        } else if (ex.getMessage().contains("fk_store")) {
+        } else if (message.contains("fk_store")) {
             response.put("error", "el ID de tienda especificada no existe.");
 
             // de request_refund
-        } else if (ex.getMessage().contains("fk_request_buyer")) {
+        } else if (message.contains("fk_request_buyer")) {
             response.put("error", "el ID de comprador especificado no existe.");
-        } else if (ex.getMessage().contains("fk_request_payment")) {
-            response.put("error", "el ID de pago especificado no existe.");
-        } else if (ex.getMessage().contains("unique_payment_id")) {
+        } else if (message.contains("fk_request_payment")) {
+            if (message.toLowerCase().contains("delete")) {
+                response.put("error", "No puedes eliminar el pago porque tiene solicitudes de reembolso asociadas.");
+            } else {
+                response.put("error", "el ID de pago especificado no existe.");
+            }
+        } else if (message.contains("unique_payment_id")) {
             response.put("error", "Ya existe una solicitud de reembolso con este ID de pago");
 
             // de product_category
-        } else if (ex.getMessage().contains("fk_store_pcategory")) {
+        } else if (message.contains("fk_store_pcategory")) {
             response.put("error", "el ID de tienda especificado no existe.");
 
             // de credit_card
-        } else if (ex.getMessage().contains("idx_unique_card_for_buyer")) {
+        } else if (message.contains("idx_unique_card_for_buyer")) {
             response.put("error", "Ya existe una tarjeta con ese número registrada para este comprador.");
-        } else if (ex.getMessage().contains("fk_buyer_creditcard")) {
+        } else if (message.contains("fk_buyer_creditcard")) {
             response.put("error", "el ID de comprador especificado no existe.");
 
             // de shoppingcart_order
-        } else if (ex.getMessage().contains("fk_buyer_shoppingcart")) {
+        } else if (message.contains("fk_buyer_shoppingcart")) {
             response.put("error", "el ID de comprador especificado no existe.");
-        } else if (ex.getMessage().contains("fk_product_shoppingcart")) {
+        } else if (message.contains("fk_product_shoppingcart")) {
             response.put("error", "el ID de producto especificado no existe.");
-        } else if (ex.getMessage().contains("unique_item_shoppingcart")) {
+        } else if (message.contains("unique_item_shoppingcart")) {
             response.put("error", "Ya existe una entrada a la Orden de comprador y producto con esa combinación");
 
             // caso de un campo largo
-        } else if (ex.getMessage().contains("el valor es demasiado largo para el tipo character varying")) {
+        } else if (message.contains("el valor es demasiado largo para el tipo character varying")) {
             response.put("error", "Hay un campo tipo VarChar superando el límite de longitud, revísalo");
         } else {
 
             // Caso general para otras violaciones de integridad
-            response.put("error", ex.getMessage());
+            response.put("error", message);
         }
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
