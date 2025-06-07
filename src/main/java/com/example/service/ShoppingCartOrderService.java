@@ -7,6 +7,8 @@ import com.example.repository.ShoppingCartOrderRepository;
 import com.example.exception.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 
+
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.Map;
@@ -31,18 +33,36 @@ public class ShoppingCartOrderService {
         return toModel(dao);
     }
 
+    public List<ShoppingCartOrder> getOrderByBuyerId(int buyerId) {
+        List<ShoppingCartOrderDao> daoList = repository.findAll();
+
+        List<ShoppingCartOrder> userOrder = new ArrayList<>();
+        for (ShoppingCartOrderDao dao: daoList) {
+            if(dao.getBuyerId() == buyerId) userOrder.add(toModel(dao));
+        }
+        if (userOrder.isEmpty()) throw new EntityNotFoundException("La Orden o Carrito del comprador con ID: "+buyerId+" está vacía");
+        return userOrder;
+    }
+
     public ShoppingCartOrder createItemOrder(ShoppingCartOrder order) {
         ShoppingCartOrderKey key = new ShoppingCartOrderKey(order.getBuyerId(), order.getProductId());
 
-        if (repository.existsById(key)) {
-            throw new IllegalArgumentException("El item con buyerId " + order.getBuyerId() +
-                    " y productId " + order.getProductId() + " ya existe.");
-        }
+        if (repository.existsById(key)) throw new IllegalArgumentException("El item con buyerId " + order.getBuyerId() + " y productId " + order.getProductId() + " ya existe.");
 
         ShoppingCartOrderDao dao = toDao(order);
         ShoppingCartOrderDao saved = repository.save(dao);
         return toModel(saved);
     }
+
+    public void createTotalOrder(List<ShoppingCartOrder> orders) {
+        if (orders.isEmpty()) throw new IllegalArgumentException("La lista de items viene vacia.");
+
+        for (ShoppingCartOrder order : orders) {
+            ShoppingCartOrderDao dao = toDao(order);
+            repository.save(dao);
+        }
+    }
+
 
     public ShoppingCartOrder updateItemOrder(int buyerId, int productId, ShoppingCartOrder order) {
         ShoppingCartOrderKey key = new ShoppingCartOrderKey(buyerId, productId);
@@ -62,6 +82,23 @@ public class ShoppingCartOrderService {
             throw new EntityNotFoundException("Item de la orden con buyerId: "+buyerId+" productID: "+productId+" no existe");
         }
         repository.deleteById(key);
+    }
+
+    public void deleteOrderByBuyer(int buyerId) {
+        ShoppingCartOrderService shoppingCartOrderService = new ShoppingCartOrderService(repository);
+        List<ShoppingCartOrder> buyerOrder = shoppingCartOrderService.getOrderByBuyerId(buyerId);
+
+        /*for (int i = 0; i < buyerOrder.size(); i++) {
+            ShoppingCartOrderKey key = new ShoppingCartOrderKey(buyerOrder.get(i).getBuyerId(), buyerOrder.get(i).getProductId());
+            repository.deleteById(key);
+        }*/
+        //buyerOrder.stream().map(shoppingCartOrder -> new ShoppingCartOrderKey(shoppingCartOrder.getBuyerId(), shoppingCartOrder.getProductId())).forEach(repository::deleteById);
+
+        for (ShoppingCartOrder itemOrder : buyerOrder) {
+            ShoppingCartOrderKey key = new ShoppingCartOrderKey(itemOrder.getBuyerId(), itemOrder.getProductId());
+            repository.deleteById(key);
+        }
+        //if (!repository.existsById(key)) throw new EntityNotFoundException("Item de la orden con buyerId: "+buyerId+" productID: "+productId+" no existe");
     }
 
     public ShoppingCartOrder partialUpdateItemOrder(int buyerId, int productId, Map<String, Object> updates) {

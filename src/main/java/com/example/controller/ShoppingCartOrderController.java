@@ -36,6 +36,17 @@ public class ShoppingCartOrderController {
         return new ResponseEntity<>(toDto(order), HttpStatus.OK);
     }
 
+    //metodo para obtener todos los productos en la orden del mismo comprador. (el carrito de compras del usuario)
+    @GetMapping("/buyer/{buyerId}")
+    public ResponseEntity<List<ShoppingCartOrderDto>> getOrderByBuyerId(@PathVariable int buyerId) {
+        List<ShoppingCartOrder> userOrder = shoppingCartOrderService.getOrderByBuyerId(buyerId);
+        List<ShoppingCartOrderDto> userOrderDto = new ArrayList<>();
+        for(ShoppingCartOrder order: userOrder){
+            userOrderDto.add(toDto(order));
+        }
+        return new ResponseEntity<>(userOrderDto, HttpStatus.OK);
+    }
+
     @PostMapping
     public ResponseEntity<Map<String, String>> createItemOrder(@Valid @RequestBody ShoppingCartOrder order) {
         ShoppingCartOrder created = shoppingCartOrderService.createItemOrder(order);
@@ -44,11 +55,28 @@ public class ShoppingCartOrderController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
+    @PostMapping("/varios")
+    public ResponseEntity<?> createTotalOrder(@RequestBody List<ShoppingCartOrder> orderList) {
+        shoppingCartOrderService.createTotalOrder(orderList);
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "Orden total creada para comprador con ID: " + orderList.get(0).getBuyerId()) ;
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+
     @DeleteMapping("/buyer/{buyerId}/product/{productId}")
     public ResponseEntity<Map<String, String>> deleteItemOrder(@PathVariable int buyerId, @PathVariable int productId) {
         shoppingCartOrderService.deleteItemOrder(buyerId, productId);
         Map<String, String> response = new HashMap<>();
         response.put("message", "Item de orden eliminado para buyerId: " + buyerId + ", productId: " + productId);
+        return ResponseEntity.ok(response);
+    }
+
+    @DeleteMapping("/buyer/{buyerId}")
+    public ResponseEntity<Map<String, String>> deleteOrderByBuyerId(@PathVariable int buyerId) {
+        shoppingCartOrderService.deleteOrderByBuyer(buyerId);
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "Orden / carrito eliminado para el comprador con ID: " + buyerId);
         return ResponseEntity.ok(response);
     }
 
