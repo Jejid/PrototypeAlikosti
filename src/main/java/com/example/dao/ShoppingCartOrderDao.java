@@ -28,7 +28,7 @@ public class ShoppingCartOrderDao {
     @Min(value = 1, message = "Debe haber al menos una unidad")
     private int units;
 
-    @Column(name = "total")
+    @Column(name = "total_product")
     @Min(value = 0, message = "El total no puede ser negativo")
-    private int total;
+    private int total_product;
 }

@@ -1,12 +1,9 @@
 package com.example.runner;
 
-import com.example.dao.ProductDao;
-import com.example.model.Product;
+
 import com.example.repository.ProductRepository;
-import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
 
 @Component
 public class DataBaseTestOne {

@@ -70,7 +70,7 @@ public class ShoppingCartOrderService {
                 .orElseThrow(() -> new EntityNotFoundException("Item de la orden con buyerId: "+buyerId+" productID: "+productId+" no existe"));
 
         existingDao.setUnits(order.getUnits());
-        existingDao.setTotal(order.getTotal());
+        existingDao.setTotal_product(order.getTotal_product());
 
         ShoppingCartOrderDao saved = repository.save(existingDao);
         return toModel(saved);
@@ -109,8 +109,8 @@ public class ShoppingCartOrderService {
         if (updates.containsKey("units")) {
             existingDao.setUnits((Integer) updates.get("units"));
         }
-        if (updates.containsKey("total")) {
-            existingDao.setTotal((Integer) updates.get("total"));
+        if (updates.containsKey("total_product")) {
+            existingDao.setTotal_product((Integer) updates.get("total_product"));
         }
 
         ShoppingCartOrderDao saved = repository.save(existingDao);
@@ -123,7 +123,7 @@ public class ShoppingCartOrderService {
         model.setBuyerId(dao.getBuyerId());
         model.setProductId(dao.getProductId());
         model.setUnits(dao.getUnits());
-        model.setTotal(dao.getTotal());
+        model.setTotal_product(dao.getTotal_product());
         return model;
     }
 
@@ -132,7 +132,7 @@ public class ShoppingCartOrderService {
         dao.setBuyerId(model.getBuyerId());
         dao.setProductId(model.getProductId());
         dao.setUnits(model.getUnits());
-        dao.setTotal(model.getTotal());
+        dao.setTotal_product(model.getTotal_product());
         return dao;
     }
 }

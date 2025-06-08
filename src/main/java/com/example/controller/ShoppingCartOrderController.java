@@ -104,7 +104,7 @@ public class ShoppingCartOrderController {
         dto.setBuyerId(order.getBuyerId());
         dto.setProductId(order.getProductId());
         dto.setUnits(order.getUnits());
-        dto.setTotal(order.getTotal());
+        dto.setTotal_product(order.getTotal_product());
         return dto;
     }
 }

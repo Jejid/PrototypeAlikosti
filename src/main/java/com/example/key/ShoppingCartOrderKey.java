@@ -27,11 +27,11 @@ public class ShoppingCartOrderKey implements Serializable {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof ShoppingCartOrderKey)) return false;
-        ShoppingCartOrderKey that = (ShoppingCartOrderKey) o;
+        if (!(o instanceof ShoppingCartOrderKey that)) return false;
         return buyerId == that.buyerId && productId == that.productId;
     }
 
+    // verifica el codigo unico de la combinación, asi nos aseguramos que este en mismo bucket
     @Override
     public int hashCode() {
         return Objects.hash(buyerId, productId);

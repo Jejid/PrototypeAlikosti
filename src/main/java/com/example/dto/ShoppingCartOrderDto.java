@@ -9,5 +9,5 @@ public class ShoppingCartOrderDto {
     private int buyerId;
     private int productId;
     private int units;
-    private int total;
+    private int total_product;
 }
