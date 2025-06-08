@@ -13,6 +13,9 @@ public class ShoppingCartOrderKey implements Serializable {
     private int buyerId;
     private int productId;
 
+    //constructor vacio
+    public ShoppingCartOrderKey() {
+    }
 
     // Constructor con campos
     public ShoppingCartOrderKey(int buyerId, int productId) {
