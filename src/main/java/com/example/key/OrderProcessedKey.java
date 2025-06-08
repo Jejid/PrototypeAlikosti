@@ -13,8 +13,6 @@ public class OrderProcessedKey implements Serializable {
     private int paymentId;
     private int productId;
 
-    // Constructor vacío
-    public OrderProcessedKey() {}
 
     // Constructor con campos
     public OrderProcessedKey(int buyerId, int productId) {

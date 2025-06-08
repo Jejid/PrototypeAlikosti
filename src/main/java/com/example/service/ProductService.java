@@ -1,8 +1,10 @@
 package com.example.service;
 
 import com.example.dao.ProductDao;
+import com.example.dao.ShoppingCartOrderDao;
 import com.example.exception.EntityNotFoundException;
 import com.example.model.Product;
+import com.example.model.ShoppingCartOrder;
 import com.example.repository.ProductRepository;
 import org.springframework.stereotype.Service;
 
@@ -10,6 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class ProductService {
@@ -40,30 +43,31 @@ public class ProductService {
         return productList;
     }
 
+    public List<Product> getProductByCategoryStore(int storeId, int categoryId){
+
+        List<ProductDao> productListDao = productRepository.findAll();
+        List<Product> productListByCat = new ArrayList<>();
+
+        for (ProductDao dao: productListDao) if(dao.getStoreId() == storeId && dao.getCategoryId() == categoryId  ) productListByCat.add(toModel(dao));
+        if (productListByCat.isEmpty()) throw new EntityNotFoundException("No hay productos con la categoria ID: "+categoryId+ " en la tienda de ID: "+storeId);
+
+        //return productListDao.stream().map(this::toModel).collect(Collectors.toList());
+        return productListByCat;
+    }
 
     public Product getProductById(Integer id) {
 
         Optional<ProductDao> productDao = productRepository.findById(id);
 
         ProductDao productDao1 = productDao.orElseThrow(() -> new EntityNotFoundException("Producto con ID: " + id + ", no encontrado"));
-        Product product = new Product();
-        product.setId(productDao1.getId());
-        product.setStoreId(productDao1.getStoreId());
-        product.setCategoryId(productDao1.getCategoryId());
-        product.setName(productDao1.getName());
-        product.setPrice(productDao1.getPrice());
-        product.setDescription(productDao1.getDescription());
-        product.setStock(productDao1.getStock());
-        product.setPic(productDao1.getPic());
-
-        return product;
+        return toModel(productDao1);
     }
 
     public Product createProduct(Product product) {
 
         ProductDao productToUpload = new ProductDao();
         productToUpload.setName(product.getName());
-        productToUpload.setStoreId(1);
+        productToUpload.setStoreId(product.getStoreId());
         productToUpload.setCategoryId(product.getCategoryId());
         productToUpload.setPrice(product.getPrice());
         productToUpload.setStock(product.getStock());
@@ -72,14 +76,7 @@ public class ProductService {
 
         ProductDao createdProduct = productRepository.save(productToUpload);
 
-        return new Product(createdProduct.getId(),
-                createdProduct.getCategoryId(),
-                createdProduct.getName(),
-                createdProduct.getPrice(),
-                createdProduct.getDescription(),
-                createdProduct.getStock(),
-                createdProduct.getPic(),
-                createdProduct.getStoreId());
+        return toModel(createdProduct);
     }
     public void deleteProduct(Integer id) {
         if (productRepository.findById(id).isEmpty()) {
@@ -170,4 +167,18 @@ public class ProductService {
                 productDao.getStoreId());
     }
 
+    //conversor dao a model
+    private Product toModel(ProductDao dao) {
+        Product model = new Product();
+        model.setId(dao.getId());
+        model.setStock(dao.getStoreId());
+        model.setCategoryId(dao.getCategoryId());
+        model.setName(dao.getName());
+        model.setPrice(dao.getPrice());
+        model.setDescription(dao.getDescription());
+        model.setStock(dao.getStock());
+        model.setPic(dao.getPic());
+        model.setStoreId(dao.getStoreId());
+        return model;
+    }
 }

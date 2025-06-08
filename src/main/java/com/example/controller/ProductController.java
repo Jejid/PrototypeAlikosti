@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 
 @RestController
@@ -29,22 +30,19 @@ public class ProductController {
 
     @GetMapping
     public ResponseEntity<List<ProductDto>> getAllProducts() {
-
-        List<ProductDto> productListDtos = new ArrayList<>();
         List<Product> productList = productService.getAllProducts();
+        List<ProductDto> productListDtos = new ArrayList<>();
+
         for (Product product : productList) {
-            ProductDto productDto = new ProductDto();
-            //productDto.setId(product.getId());
-            productDto.setName(product.getName());
-            //productDto.setStoreId(product.getStoreId());
-            productDto.setCategoryId(product.getCategoryId());
-            productDto.setPrice(product.getPrice());
-            productDto.setStock(product.getStock());
-            productDto.setDescription(product.getDescription());
-            productDto.setPic(product.getPic());
-            productListDtos.add(productDto);
+            productListDtos.add(toDto(product));
         }
         return new ResponseEntity<>(productListDtos,HttpStatus.OK);
+    }
+
+    @GetMapping("store/{storeId}/category/{categoryId}")
+    public ResponseEntity<List<ProductDto>> getProductsByCategoryStore(@PathVariable int storeId, @PathVariable int categoryId){
+        List<Product> productList = productService.getProductByCategoryStore(storeId,categoryId);
+        return new ResponseEntity<>(productList.stream().map(this::toDto).collect(Collectors.toList()),HttpStatus.OK);
     }
 
 
@@ -53,18 +51,7 @@ public class ProductController {
 
         Product product = productService.getProductById(id);
 
-        ProductDto productDto = new ProductDto();
-
-        //productDto.setId(product.getId());
-        productDto.setName(product.getName());
-        //productDto.setStoreId(product.getStoreId());
-        productDto.setCategoryId(product.getCategoryId());
-        productDto.setPrice(product.getPrice());
-        productDto.setStock(product.getStock());
-        productDto.setDescription(product.getDescription());
-        productDto.setPic(product.getPic());
-
-        return new ResponseEntity<>(productDto,HttpStatus.OK);
+        return new ResponseEntity<>(toDto(product),HttpStatus.OK);
     }
 
 
@@ -109,5 +96,17 @@ public class ProductController {
         return ResponseEntity.ok(response);
     }
 
+    // metodo auxiliar para mapear modelo a DTO
+    private ProductDto toDto(Product model) {
+        ProductDto dto = new ProductDto();
+        dto.setStock(model.getStoreId());
+        dto.setCategoryId(model.getCategoryId());
+        dto.setName(model.getName());
+        dto.setPrice(model.getPrice());
+        dto.setDescription(model.getDescription());
+        dto.setStock(model.getStock());
+        dto.setPic(model.getPic());
+        return dto;
+    }
 
 }
