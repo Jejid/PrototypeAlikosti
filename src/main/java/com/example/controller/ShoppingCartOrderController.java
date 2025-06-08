@@ -55,7 +55,7 @@ public class ShoppingCartOrderController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @PostMapping("/varios")
+    @PostMapping("/many")
     public ResponseEntity<?> createTotalOrder(@RequestBody List<ShoppingCartOrder> orderList) {
         shoppingCartOrderService.createTotalOrder(orderList);
         Map<String, String> response = new HashMap<>();
@@ -74,7 +74,7 @@ public class ShoppingCartOrderController {
 
     @DeleteMapping("/buyer/{buyerId}")
     public ResponseEntity<Map<String, String>> deleteOrderByBuyerId(@PathVariable int buyerId) {
-        shoppingCartOrderService.deleteOrderByBuyer(buyerId);
+        shoppingCartOrderService.deleteOrderByBuyerId(buyerId);
         Map<String, String> response = new HashMap<>();
         response.put("message", "Orden / carrito eliminado para el comprador con ID: " + buyerId);
         return ResponseEntity.ok(response);

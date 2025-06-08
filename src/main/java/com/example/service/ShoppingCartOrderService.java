@@ -7,7 +7,6 @@ import com.example.repository.ShoppingCartOrderRepository;
 import com.example.exception.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -84,7 +83,7 @@ public class ShoppingCartOrderService {
         repository.deleteById(key);
     }
 
-    public void deleteOrderByBuyer(int buyerId) {
+    public void deleteOrderByBuyerId(int buyerId) {
         ShoppingCartOrderService shoppingCartOrderService = new ShoppingCartOrderService(repository);
         List<ShoppingCartOrder> buyerOrder = shoppingCartOrderService.getOrderByBuyerId(buyerId);
 
@@ -117,7 +116,7 @@ public class ShoppingCartOrderService {
         return toModel(saved);
     }
 
-    // Conversiones DAO <-> Model
+    // Conversiones DAO -> Model
     private ShoppingCartOrder toModel(ShoppingCartOrderDao dao) {
         ShoppingCartOrder model = new ShoppingCartOrder();
         model.setBuyerId(dao.getBuyerId());
@@ -126,7 +125,7 @@ public class ShoppingCartOrderService {
         model.setTotal_product(dao.getTotal_product());
         return model;
     }
-
+    // Conversiones Model -> DAO
     private ShoppingCartOrderDao toDao(ShoppingCartOrder model) {
         ShoppingCartOrderDao dao = new ShoppingCartOrderDao();
         dao.setBuyerId(model.getBuyerId());
