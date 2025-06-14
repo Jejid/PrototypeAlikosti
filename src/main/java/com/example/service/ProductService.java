@@ -1,10 +1,8 @@
 package com.example.service;
 
 import com.example.dao.ProductDao;
-import com.example.dao.ShoppingCartOrderDao;
 import com.example.exception.EntityNotFoundException;
 import com.example.model.Product;
-import com.example.model.ShoppingCartOrder;
 import com.example.repository.ProductRepository;
 import org.springframework.stereotype.Service;
 
@@ -12,7 +10,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 public class ProductService {

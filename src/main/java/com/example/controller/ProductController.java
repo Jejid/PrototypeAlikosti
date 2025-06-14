@@ -57,7 +57,6 @@ public class ProductController {
 
     @PostMapping
     public ResponseEntity<Map<String, String>> createProduct(@Valid @RequestBody Product product) {
-
         Product productCreated = productService.createProduct(product);
 
         Map<String, String> response = new HashMap<>();

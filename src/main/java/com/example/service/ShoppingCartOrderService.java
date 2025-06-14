@@ -2,6 +2,7 @@ package com.example.service;
 
 import com.example.dao.ShoppingCartOrderDao;
 import com.example.key.ShoppingCartOrderKey;
+import com.example.model.Product;
 import com.example.model.ShoppingCartOrder;
 import com.example.repository.ShoppingCartOrderRepository;
 import com.example.exception.EntityNotFoundException;
@@ -16,9 +17,11 @@ import java.util.Map;
 public class ShoppingCartOrderService {
 
     private final ShoppingCartOrderRepository repository;
+    private final ProductService productService;
 
-    public ShoppingCartOrderService(ShoppingCartOrderRepository repository) {
+    public ShoppingCartOrderService(ShoppingCartOrderRepository repository, ProductService productService) {
         this.repository = repository;
+        this.productService = productService;
     }
 
     public List<ShoppingCartOrder> getAllItemOrders() {
@@ -46,9 +49,12 @@ public class ShoppingCartOrderService {
     public ShoppingCartOrder createItemOrder(ShoppingCartOrder order) {
         ShoppingCartOrderKey key = new ShoppingCartOrderKey(order.getBuyerId(), order.getProductId());
 
+        Product product = productService.getProductById(order.getProductId());
+        int total = order.getUnits() * product.getPrice();
         if (repository.existsById(key)) throw new IllegalArgumentException("El item con buyerId " + order.getBuyerId() + " y productId " + order.getProductId() + " ya existe.");
 
         ShoppingCartOrderDao dao = toDao(order);
+        dao.setTotal_product(total);
         ShoppingCartOrderDao saved = repository.save(dao);
         return toModel(saved);
     }
@@ -84,8 +90,7 @@ public class ShoppingCartOrderService {
     }
 
     public void deleteOrderByBuyerId(int buyerId) {
-        ShoppingCartOrderService shoppingCartOrderService = new ShoppingCartOrderService(repository);
-        List<ShoppingCartOrder> buyerOrder = shoppingCartOrderService.getOrderByBuyerId(buyerId);
+        List<ShoppingCartOrder> buyerOrder = getOrderByBuyerId(buyerId);
 
         /*for (int i = 0; i < buyerOrder.size(); i++) {
             ShoppingCartOrderKey key = new ShoppingCartOrderKey(buyerOrder.get(i).getBuyerId(), buyerOrder.get(i).getProductId());

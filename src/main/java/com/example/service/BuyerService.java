@@ -34,6 +34,7 @@ public class BuyerService {
             buyer.setPassAccount(buyerDao.getPassAccount());
             buyerList.add(buyer);
         }
+
         return buyerList;
     }
 
@@ -147,6 +148,34 @@ public class BuyerService {
                 throw new IllegalArgumentException("Tipo de dato incorrecto para el campo " + key);
             }
         });
+
+        buyerRepository.save(buyerDao);
+
+        return new Buyer(
+                buyerDao.getId(),
+                buyerDao.getName(),
+                buyerDao.getSurname(),
+                buyerDao.getBirthDate(),
+                buyerDao.getCc(),
+                buyerDao.getEmail(),
+                buyerDao.getPassAccount());
+    }
+
+    public Buyer partialUpdateBuyer2 (Integer id, Buyer updates){
+
+        Optional<BuyerDao> optionalBuyerDao = buyerRepository.findById(id);
+        if (optionalBuyerDao.isEmpty()) {
+            throw new EntityNotFoundException("Comprador con ID: " + id + " no encontrado");
+        }
+
+        final BuyerDao buyerDao = optionalBuyerDao.get();
+
+        if (updates.getName() != null) buyerDao.setName(updates.getName());
+        if (updates.getSurname() != null) buyerDao.setSurname(updates.getSurname());
+        if (updates.getBirthDate() != null) buyerDao.setBirthDate(updates.getBirthDate());
+        if (updates.getCc() != null) buyerDao.setCc(updates.getCc());
+        if (updates.getEmail() != null) buyerDao.setEmail(updates.getEmail());
+        if (updates.getPassAccount() != null) buyerDao.setPassAccount(updates.getPassAccount());
 
         buyerRepository.save(buyerDao);
 

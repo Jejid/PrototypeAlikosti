@@ -9,7 +9,7 @@ import lombok.Setter;
 @Getter
 public class BuyerDto {
 
-    //private int id;
+    //private int id; MOSTRARLO¡
     private String name;
     private String surname;
     private String birthDate;

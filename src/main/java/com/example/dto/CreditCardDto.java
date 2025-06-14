@@ -6,6 +6,8 @@ import lombok.Setter;
 @Setter
 @Getter
 public class CreditCardDto {
+
+
     //private int id;
     //private int buyerId;
     private String name;

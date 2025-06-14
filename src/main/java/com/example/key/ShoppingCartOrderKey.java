@@ -32,7 +32,7 @@ public class ShoppingCartOrderKey implements Serializable {
         return buyerId == that.buyerId && productId == that.productId;
     }
 
-    // verifica el codigo unico de la combinación, asi nos aseguramos que este en mismo bucket
+    // verifica el codigo unico de la combinación, asi nos aseguramos que esté en el mismo bucket
     @Override
     public int hashCode() {
         return Objects.hash(buyerId, productId);
