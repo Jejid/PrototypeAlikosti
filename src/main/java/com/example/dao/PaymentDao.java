@@ -30,9 +30,7 @@ public class PaymentDao {
 
     private Integer codeConfirmation;
 
-    @Column(length = 20)
     private String cardNumber;
 
-    @Column(nullable = false)
     private boolean refunded = false;
 }

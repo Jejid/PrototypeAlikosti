@@ -16,11 +16,9 @@ public class OrderProcessedDto {
     @NotNull(message = "productId es necesario")
     private int productId;
 
-    @Column(name = "units")
     @Min(value = 1, message = "Debe haber al menos una unidad")
     private int units;
 
-    @Column(name = "total_product")
     @Min(value = 0, message = "El total no puede ser negativo")
     private int total_product;
 }

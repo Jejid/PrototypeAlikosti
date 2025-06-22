@@ -33,6 +33,10 @@ public class PaymentDto {
     @Max(value = 2, message = "El estado de confirmación debe ser 0, 1 o 2")
     private int confirmation;
     private Integer codeConfirmation;
+
+    @Column(length = 20)
     private String cardNumber;
-    private boolean refunded;
+
+    @Column(nullable = false)
+    private boolean refunded = false;
 }

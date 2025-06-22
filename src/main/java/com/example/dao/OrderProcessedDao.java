@@ -2,8 +2,6 @@ package com.example.dao;
 
 import com.example.key.OrderProcessedKey;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -22,7 +20,9 @@ public class OrderProcessedDao {
     @Column(name = "product_id")
     private Integer productId;
 
+    @Column(name = "units")
     private int units;
 
+    @Column(name = "total_product")
     private int total_product;
 }
