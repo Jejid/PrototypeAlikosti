@@ -1,9 +1,11 @@
 package com.example.service;
 
 import com.example.dao.BuyerDao;
-import com.example.model.Buyer;
+import com.example.dto.BuyerDto;
 import com.example.exception.EntityNotFoundException;
+import com.example.model.Buyer;
 import com.example.repository.BuyerRepository;
+import com.example.utility.MapperObject;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -14,9 +16,11 @@ import java.util.Optional;
 @Service
 public class BuyerService {
     private final BuyerRepository buyerRepository;
+    private final MapperObject mapperObject;
 
-    public BuyerService(BuyerRepository buyerRepository) {
+    public BuyerService(BuyerRepository buyerRepository, MapperObject mapperObject) {
         this.buyerRepository = buyerRepository;
+        this.mapperObject = mapperObject;
     }
 
     public List<Buyer> getAllBuyers() {
@@ -55,26 +59,8 @@ public class BuyerService {
         return buyer;
     }
 
-    public Buyer createBuyer(Buyer buyer) {
-
-        BuyerDao buyerToUpload = new BuyerDao();
-
-        buyerToUpload.setName(buyer.getName());
-        buyerToUpload.setSurname(buyer.getSurname());
-        buyerToUpload.setBirthDate(buyer.getBirthDate());
-        buyerToUpload.setCc(buyer.getCc());
-        buyerToUpload.setEmail(buyer.getEmail());
-        buyerToUpload.setPassAccount(buyer.getPassAccount());
-
-        BuyerDao createdBuyer = buyerRepository.save(buyerToUpload);
-
-        return new Buyer(createdBuyer.getId(),
-                createdBuyer.getName(),
-                createdBuyer.getSurname(),
-                createdBuyer.getBirthDate(),
-                createdBuyer.getCc(),
-                createdBuyer.getEmail(),
-                createdBuyer.getPassAccount());
+    public Buyer createBuyer(BuyerDto buyerDto) {
+        return mapperObject.toModel(buyerRepository.save(mapperObject.toDao(mapperObject.toModel(buyerDto))));
     }
 
     public Buyer updateBuyer(Integer id, Buyer updatedBuyer) {
@@ -111,7 +97,7 @@ public class BuyerService {
         buyerRepository.deleteById(id);
     }
 
-    public Buyer partialUpdateBuyer(Integer id, Map<String, Object> updates){
+    public Buyer partialUpdateBuyer(Integer id, Map<String, Object> updates) {
 
         Optional<BuyerDao> optionalBuyerDao = buyerRepository.findById(id);
         if (optionalBuyerDao.isEmpty()) {
@@ -161,7 +147,7 @@ public class BuyerService {
                 buyerDao.getPassAccount());
     }
 
-    public Buyer partialUpdateBuyer2 (Integer id, Buyer updates){
+    public Buyer partialUpdateBuyer2(Integer id, Buyer updates) {
 
         Optional<BuyerDao> optionalBuyerDao = buyerRepository.findById(id);
         if (optionalBuyerDao.isEmpty()) {
