@@ -1,8 +1,6 @@
 package com.example.dao;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -18,8 +16,10 @@ public class CreditCardDao {
 
     private int buyerId;
 
+    @Column(name = "name", length = 20, nullable = false)
     private String name;
 
+    @Column(name = "card_number", length = 35, nullable = false)
     private String cardNumber;
 
     private String cardDate;

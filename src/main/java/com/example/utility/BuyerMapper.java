@@ -81,7 +81,7 @@ public class BuyerMapper {
                     case "surname":
                         if (value == null || value instanceof String) dao.setSurname((String) value);
                         break;
-                    case "birth_date":
+                    case "birthDate":
                         if (value == null || value instanceof String) dao.setBirthDate(((String) value));
                         break;
                     case "cc":
@@ -90,7 +90,7 @@ public class BuyerMapper {
                     case "email":
                         if (value == null || value instanceof String) dao.setEmail((String) value);
                         break;
-                    case "pass_account":
+                    case "passAccount":
                         if (value == null || value instanceof String) dao.setPassAccount(((String) value));
                         break;
                     default:
