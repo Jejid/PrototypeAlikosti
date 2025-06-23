@@ -6,6 +6,7 @@ import com.example.exception.BadRequestException;
 import com.example.exception.EntityNotFoundException;
 import com.example.model.Buyer;
 import com.example.repository.BuyerRepository;
+import com.example.utility.DeletionValidator;
 import com.example.utility.MapperObject;
 import org.springframework.stereotype.Service;
 
@@ -19,10 +20,12 @@ import java.util.stream.Collectors;
 public class BuyerService {
     private final BuyerRepository buyerRepository;
     private final MapperObject mapperObject;
+    private final DeletionValidator validator;
 
-    public BuyerService(BuyerRepository buyerRepository, MapperObject mapperObject) {
+    public BuyerService(BuyerRepository buyerRepository, MapperObject mapperObject, DeletionValidator validator) {
         this.buyerRepository = buyerRepository;
         this.mapperObject = mapperObject;
+        this.validator = validator;
     }
 
     public List<Buyer> getAllBuyers() {
@@ -40,11 +43,10 @@ public class BuyerService {
         return mapperObject.toModel(buyerRepository.save(mapperObject.toDao(mapperObject.toModel(buyerDto))));
     }
 
-
     public void deleteBuyer(Integer id) {
-        if (buyerRepository.findById(id).isEmpty()) {
-            throw new EntityNotFoundException("Comprador con ID " + id + ", no encontrado");
-        }
+        if (!buyerRepository.existsById(id))
+            throw new EntityNotFoundException("Comprador con ID: " + id + ", no encontrado");
+        validator.deletionValidatorBuyer(id);
         buyerRepository.deleteById(id);
     }
 

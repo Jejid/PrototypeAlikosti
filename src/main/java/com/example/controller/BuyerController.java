@@ -39,11 +39,11 @@ public class BuyerController {
     @PostMapping
     public ResponseEntity<Map<String, String>> createBuyer(@Valid @RequestBody BuyerDto buyerDto) {
         Buyer buyerCreated = buyerService.createBuyer(buyerDto);
+
         Map<String, String> response = new HashMap<>();
         response.put("message", "Comprador: " + buyerCreated.getName() + "con ID: " + buyerCreated.getId() + ", creado exitosamente");
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
-
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Map<String, String>> deleteBuyer(@PathVariable Integer id) {

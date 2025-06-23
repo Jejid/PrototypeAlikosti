@@ -6,4 +6,6 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface RequestRefundRepository extends JpaRepository<RequestRefundDao, Integer> {
+
+    boolean existsByBuyerId(Integer buyerId);
 }

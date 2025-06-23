@@ -10,7 +10,7 @@ import lombok.Setter;
 @Getter
 public class RequestRefundDto {
 
-    //private int id;
+    private int id;
 
     @NotNull(message = "El ID del comprador es necesario")
     private int buyerId;
