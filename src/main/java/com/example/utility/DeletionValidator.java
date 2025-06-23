@@ -1,10 +1,7 @@
 package com.example.utility;
 
 import com.example.exception.RelatedEntityException;
-import com.example.repository.PaymentRepository;
-import com.example.repository.ProductRepository;
-import com.example.repository.RequestRefundRepository;
-import com.example.repository.ShoppingCartOrderRepository;
+import com.example.repository.*;
 import lombok.NoArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -21,12 +18,14 @@ public class DeletionValidator {
     private PaymentRepository paymentRepository;
     @Autowired
     private ProductRepository productRepository;
+    @Autowired
+    private OrderProcessedRepository orderProcessedRepository;
 
 
     // Validación para buyer
     public void deletionValidatorBuyer(Integer buyerId) {
         if (shoppingCartRepository.existsByBuyerId(buyerId))
-            throw new RelatedEntityException("No se puede eliminar el comprador porque tiene carrito de compras asociado.");
+            throw new RelatedEntityException("No se puede eliminar el comprador porque tiene carrito de compras (orden) asociado.");
         if (requestRefundRepository.existsByBuyerId(buyerId))
             throw new RelatedEntityException("No se puede eliminar el comprador porque tiene un reembolso asociado.");
         if (paymentRepository.existsByBuyerId(buyerId))
@@ -34,9 +33,18 @@ public class DeletionValidator {
         // otros if para relación con otras tablas
     }
 
+    // Validación para product
+    public void deletionValidatorProduct(Integer productId) {
+        if (shoppingCartRepository.existsByProductId(productId))
+            throw new RelatedEntityException("No se puede eliminar el producto porque tiene carrito de compras (orden) asociado.");
+        if (orderProcessedRepository.existsByProductId(productId))
+            throw new RelatedEntityException("No se puede eliminar el producto porque tiene una orden procesada (venta) asociada.");
+        // otros if para relación con otras tablas
+    }
+
     // Validación para productCategory
-    public void deletionValidatorProductCategory(Integer buyerId) {
-        if (productRepository.existsByCategoryId(buyerId))
+    public void deletionValidatorProductCategory(Integer categoryId) {
+        if (productRepository.existsByCategoryId(categoryId))
             throw new RelatedEntityException("No se puede eliminar la categoria porque tiene al menos un producto asociado.");
         // otros if para relación con otras tablas
     }

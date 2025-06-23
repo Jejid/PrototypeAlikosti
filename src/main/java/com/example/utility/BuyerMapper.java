@@ -1,14 +1,8 @@
 package com.example.utility;
 
 import com.example.dao.BuyerDao;
-import com.example.dao.OrderProcessedDao;
-import com.example.dao.ShoppingCartOrderDao;
 import com.example.dto.BuyerDto;
-import com.example.dto.OrderProcessedDto;
-import com.example.dto.ShoppingCartOrderDto;
 import com.example.model.Buyer;
-import com.example.model.OrderProcessed;
-import com.example.model.ShoppingCartOrder;
 import lombok.NoArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -109,7 +103,6 @@ public class BuyerMapper {
 
         return dao;
     }
-
     /*public BuyerDao parcialUpdateToDao2(BuyerDto dto, BuyerDao daoOrigin) {
         if (dto == null) return null;
 
@@ -122,71 +115,6 @@ public class BuyerMapper {
 
         return daoOrigin;
     }*/
-
-
-    // ------------------ SHOPPING CART ORDER ------------------
-
-    // Model -> DAO
-    private ShoppingCartOrderDao toDto(ShoppingCartOrder model) {
-        ShoppingCartOrderDao dao = new ShoppingCartOrderDao();
-        dao.setBuyerId(model.getBuyerId());
-        dao.setProductId(model.getProductId());
-        dao.setUnits(model.getUnits());
-        dao.setTotal_product(model.getTotal_product());
-        return dao;
-    }
-
-    // DAO -> Model
-    private ShoppingCartOrder toModel(ShoppingCartOrderDao dao) {
-        ShoppingCartOrder model = new ShoppingCartOrder();
-        model.setBuyerId(dao.getBuyerId());
-        model.setProductId(dao.getProductId());
-        model.setUnits(dao.getUnits());
-        model.setTotal_product(dao.getTotal_product());
-        return model;
-    }
-
-    // DTO -> Model
-    private ShoppingCartOrder toModel(ShoppingCartOrderDto dto) {
-        ShoppingCartOrder model = new ShoppingCartOrder();
-        model.setBuyerId(dto.getBuyerId());
-        model.setProductId(dto.getProductId());
-        model.setUnits(dto.getUnits());
-        model.setTotal_product(dto.getTotal_product());
-        return model;
-    }
-
-    // ------------------ ORDER PROCESSED ------------------
-
-    // DAO -> Model
-    private OrderProcessed toModel(OrderProcessedDao dao) {
-        OrderProcessed model = new OrderProcessed();
-        model.setPaymentId(dao.getPaymentId());
-        model.setProductId(dao.getProductId());
-        model.setUnits(dao.getUnits());
-        model.setTotal_product(dao.getTotal_product());
-        return model;
-    }
-
-    // Model -> DAO
-    private OrderProcessedDao toDto(OrderProcessed model) {
-        OrderProcessedDao dao = new OrderProcessedDao();
-        dao.setPaymentId(model.getPaymentId());
-        dao.setProductId(model.getProductId());
-        dao.setUnits(model.getUnits());
-        dao.setTotal_product(model.getTotal_product());
-        return dao;
-    }
-
-    // DTO -> Model
-    private OrderProcessed toModel(OrderProcessedDto dto) {
-        OrderProcessed model = new OrderProcessed();
-        model.setPaymentId(dto.getPaymentId());
-        model.setProductId(dto.getProductId());
-        model.setUnits(dto.getUnits());
-        model.setTotal_product(dto.getTotal_product());
-        return model;
-    }
 }
 
 

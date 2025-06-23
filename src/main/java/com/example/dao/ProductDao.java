@@ -18,8 +18,10 @@ public class ProductDao {
 
     private int categoryId;
 
+    @Column(name = "name", length = 30, nullable = false)
     private String name;
 
+    @Column(name = "price", nullable = false)
     private int price;
 
     private String description;

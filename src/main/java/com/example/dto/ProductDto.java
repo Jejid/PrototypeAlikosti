@@ -1,7 +1,6 @@
 package com.example.dto;
 
 
-import jakarta.persistence.Column;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -17,11 +16,9 @@ public class ProductDto {
     @NotNull(message = "La categoria no puede estar vacía")
     private int categoryId;
 
-    @Column(name = "name", length = 30, nullable = false)
     @NotBlank(message = "El nombre del producto es necesario")
     private String name;
 
-    @Column(name = "price", nullable = false)
     @NotNull(message = "El precio no puede estar vacío")
     @Min(value = 0, message = "El precio debe ser mayor o igual a 0")
     private int price;

@@ -8,4 +8,6 @@ public interface ShoppingCartOrderRepository extends JpaRepository<ShoppingCartO
 
     // Aquí se puede agregar métodos personalizados si es necesario
     boolean existsByBuyerId(Integer buyerId);
+
+    boolean existsByProductId(Integer productId);
 }
