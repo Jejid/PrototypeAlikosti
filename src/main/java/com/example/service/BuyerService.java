@@ -6,8 +6,8 @@ import com.example.exception.BadRequestException;
 import com.example.exception.EntityNotFoundException;
 import com.example.model.Buyer;
 import com.example.repository.BuyerRepository;
+import com.example.utility.BuyerMapper;
 import com.example.utility.DeletionValidator;
-import com.example.utility.MapperObject;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -19,28 +19,28 @@ import java.util.stream.Collectors;
 @Service
 public class BuyerService {
     private final BuyerRepository buyerRepository;
-    private final MapperObject mapperObject;
+    private final BuyerMapper buyerMapper;
     private final DeletionValidator validator;
 
-    public BuyerService(BuyerRepository buyerRepository, MapperObject mapperObject, DeletionValidator validator) {
+    public BuyerService(BuyerRepository buyerRepository, BuyerMapper buyerMapper, DeletionValidator validator) {
         this.buyerRepository = buyerRepository;
-        this.mapperObject = mapperObject;
+        this.buyerMapper = buyerMapper;
         this.validator = validator;
     }
 
     public List<Buyer> getAllBuyers() {
         List<BuyerDao> buyerListDao = buyerRepository.findAll();
-        return buyerListDao.stream().map(mapperObject::toModel).collect(Collectors.toList());
+        return buyerListDao.stream().map(buyerMapper::toModel).collect(Collectors.toList());
     }
 
     public Buyer getBuyerById(Integer id) {
         Optional<BuyerDao> optionalBuyer = buyerRepository.findById(id);
         BuyerDao buyerDao = optionalBuyer.orElseThrow(() -> new EntityNotFoundException("Comprador con ID: " + id + ", no encontrado"));
-        return mapperObject.toModel(buyerDao);
+        return buyerMapper.toModel(buyerDao);
     }
 
     public Buyer createBuyer(BuyerDto buyerDto) {
-        return mapperObject.toModel(buyerRepository.save(mapperObject.toDao(mapperObject.toModel(buyerDto))));
+        return buyerMapper.toModel(buyerRepository.save(buyerMapper.toDao(buyerMapper.toModel(buyerDto))));
     }
 
     public void deleteBuyer(Integer id) {
@@ -54,7 +54,7 @@ public class BuyerService {
         buyerRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Comprador con ID: " + id + ", no encontrado"));
         if (!Objects.equals(updatedBuyerDto.getId(), id))
             throw new BadRequestException("El ID ingresado en el JSON no coincide con el ID de actualización: " + id);
-        return mapperObject.toModel(buyerRepository.save(mapperObject.toDao(mapperObject.toModel(updatedBuyerDto))));
+        return buyerMapper.toModel(buyerRepository.save(buyerMapper.toDao(buyerMapper.toModel(updatedBuyerDto))));
     }
 
     public Buyer partialUpdateBuyer(Integer id, Map<String, Object> updates) {
@@ -62,7 +62,7 @@ public class BuyerService {
         Optional<BuyerDao> optionalBuyer = buyerRepository.findById(id);
         BuyerDao buyerDaoOrigin = optionalBuyer.orElseThrow(() -> new EntityNotFoundException("Comprador con ID: " + id + ", no encontrado"));
 
-        return mapperObject.toModel(buyerRepository.save(mapperObject.parcialUpdateToDao(buyerDaoOrigin, updates)));
+        return buyerMapper.toModel(buyerRepository.save(buyerMapper.parcialUpdateToDao(buyerDaoOrigin, updates)));
     }
 
      /* public Buyer partialUpdateBuyer2(Integer id, BuyerDto updatesDto) {
@@ -70,7 +70,7 @@ public class BuyerService {
         Optional<BuyerDao> optionalBuyer = buyerRepository.findById(id);
         BuyerDao buyerDaoOrigin = optionalBuyer.orElseThrow(() -> new EntityNotFoundException("Comprador con ID: " + id + ", no encontrado"));
 
-        return mapperObject.toModel(buyerRepository.save(mapperObject.parcialUpdateToDao2(updatesDto, buyerDaoOrigin)));}
+        return buyerMapper.toModel(buyerRepository.save(buyerMapper.parcialUpdateToDao2(updatesDto, buyerDaoOrigin)));}
      */
 
 

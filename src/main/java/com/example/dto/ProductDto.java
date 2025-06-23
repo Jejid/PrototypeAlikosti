@@ -12,7 +12,9 @@ import lombok.Setter;
 @Getter
 public class ProductDto {
 
-    //private int id;
+    private int id;
+
+    @NotNull(message = "La categoria no puede estar vacía")
     private int categoryId;
 
     @Column(name = "name", length = 30, nullable = false)
@@ -33,6 +35,6 @@ public class ProductDto {
 
     private String pic;
 
-    //@NotNull(message = "El ID de la tienda es necesario")
-    //private int storeId;
+    @NotNull(message = "El ID de la tienda es necesario")
+    private int storeId;
 }

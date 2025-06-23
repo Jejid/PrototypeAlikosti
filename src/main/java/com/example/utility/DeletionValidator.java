@@ -2,6 +2,7 @@ package com.example.utility;
 
 import com.example.exception.RelatedEntityException;
 import com.example.repository.PaymentRepository;
+import com.example.repository.ProductRepository;
 import com.example.repository.RequestRefundRepository;
 import com.example.repository.ShoppingCartOrderRepository;
 import lombok.NoArgsConstructor;
@@ -18,6 +19,8 @@ public class DeletionValidator {
     private RequestRefundRepository requestRefundRepository;
     @Autowired
     private PaymentRepository paymentRepository;
+    @Autowired
+    private ProductRepository productRepository;
 
 
     // Validación para buyer
@@ -31,5 +34,10 @@ public class DeletionValidator {
         // otros if para relación con otras tablas
     }
 
-    // Validación para producto
+    // Validación para productCategory
+    public void deletionValidatorProductCategory(Integer buyerId) {
+        if (productRepository.existsByCategoryId(buyerId))
+            throw new RelatedEntityException("No se puede eliminar la categoria porque tiene al menos un producto asociado.");
+        // otros if para relación con otras tablas
+    }
 }

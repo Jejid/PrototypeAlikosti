@@ -1,119 +1,65 @@
 package com.example.service;
 
 import com.example.dao.ProductCategoryDao;
+import com.example.dto.ProductCategoryDto;
+import com.example.exception.BadRequestException;
 import com.example.exception.EntityNotFoundException;
 import com.example.model.ProductCategory;
 import com.example.repository.ProductCategoryRepository;
+import com.example.utility.DeletionValidator;
+import com.example.utility.ProductCategoryMapper;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class ProductCategoryService {
-
     private final ProductCategoryRepository productCategoryRepository;
+    private final ProductCategoryMapper productCategoryMapper;
+    private final DeletionValidator validator;
 
-    public ProductCategoryService(ProductCategoryRepository productCategoryRepository) {
+    public ProductCategoryService(ProductCategoryRepository productCategoryRepository, ProductCategoryMapper productCategoryMapper, DeletionValidator validator) {
         this.productCategoryRepository = productCategoryRepository;
+        this.productCategoryMapper = productCategoryMapper;
+        this.validator = validator;
     }
 
     public List<ProductCategory> getAllProductCategories() {
-        List<ProductCategoryDao> daoList = productCategoryRepository.findAll();
-        List<ProductCategory> categoryList = new ArrayList<>();
-
-        for (ProductCategoryDao dao : daoList) {
-            categoryList.add(new ProductCategory(
-                    dao.getId(),
-                    dao.getStoreId(),
-                    dao.getName(),
-                    dao.getDescription()
-            ));
-        }
-        return categoryList;
+        List<ProductCategoryDao> categoryListDao = productCategoryRepository.findAll();
+        return categoryListDao.stream().map(productCategoryMapper::toModel).collect(Collectors.toList());
     }
 
     public ProductCategory getProductCategoryById(Integer id) {
-        ProductCategoryDao dao = productCategoryRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Categoría con ID: " + id + " no encontrada"));
-
-        return new ProductCategory(
-                dao.getId(),
-                dao.getStoreId(),
-                dao.getName(),
-                dao.getDescription()
-        );
+        Optional<ProductCategoryDao> optionalCategory = productCategoryRepository.findById(id);
+        ProductCategoryDao categoryDao = optionalCategory.orElseThrow(() -> new EntityNotFoundException("Categoría con ID: " + id + ", no encontrada"));
+        return productCategoryMapper.toModel(categoryDao);
     }
 
-    public ProductCategory createProductCategory(ProductCategory category) {
-        ProductCategoryDao dao = new ProductCategoryDao();
-        dao.setStoreId(category.getStoreId());
-        dao.setName(category.getName());
-        dao.setDescription(category.getDescription());
-
-        ProductCategoryDao saved = productCategoryRepository.save(dao);
-
-        return new ProductCategory(
-                saved.getId(),
-                saved.getStoreId(),
-                saved.getDescription(), saved.getName()
-        );
-    }
-
-    public ProductCategory updateProductCategory(Integer id, ProductCategory updated) {
-        ProductCategoryDao dao = productCategoryRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Categoría con ID: " + id + " no encontrada"));
-
-        dao.setStoreId(updated.getStoreId());
-        dao.setName(updated.getName());
-        dao.setDescription(updated.getDescription());
-
-        ProductCategoryDao saved = productCategoryRepository.save(dao);
-
-        return new ProductCategory(
-                saved.getId(),
-                saved.getStoreId(),
-                saved.getName(),
-                saved.getDescription()
-        );
+    public ProductCategory createProductCategory(ProductCategoryDto categoryDto) {
+        return productCategoryMapper.toModel(productCategoryRepository.save(productCategoryMapper.toDao(productCategoryMapper.toModel(categoryDto))));
     }
 
     public void deleteProductCategory(Integer id) {
-        if (productCategoryRepository.findById(id).isEmpty()) {
-            throw new EntityNotFoundException("Categoría con ID " + id + " no encontrada");
-        }
+        if (!productCategoryRepository.existsById(id))
+            throw new EntityNotFoundException("Categoría con ID: " + id + ", no encontrada");
+        validator.deletionValidatorProductCategory(id);
         productCategoryRepository.deleteById(id);
     }
 
+    public ProductCategory updateProductCategory(Integer id, ProductCategoryDto updatedCategoryDto) {
+        productCategoryRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Categoría con ID: " + id + ", no encontrada"));
+        if (!Objects.equals(updatedCategoryDto.getId(), id))
+            throw new BadRequestException("El ID ingresado en el JSON no coincide con el ID de actualización: " + id);
+        return productCategoryMapper.toModel(productCategoryRepository.save(productCategoryMapper.toDao(productCategoryMapper.toModel(updatedCategoryDto))));
+    }
+
     public ProductCategory partialUpdateProductCategory(Integer id, Map<String, Object> updates) {
-        ProductCategoryDao dao = productCategoryRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Categoría con ID: " + id + " no encontrada"));
-
-        updates.forEach((key, value) -> {
-            try {
-                switch (key) {
-                    case "storeId" -> {
-                        if (value instanceof Number) dao.setStoreId(((Number) value).intValue());
-                    }
-                    case "name" -> {
-                        if (value == null || value instanceof String) dao.setName((String) value);
-                    }
-                    case "description" -> {
-                        if (value == null || value instanceof String) dao.setDescription((String) value);
-                    }
-                    default -> throw new IllegalArgumentException("Campo " + key + " no válido para actualización.");
-                }
-            } catch (ClassCastException e) {
-                throw new IllegalArgumentException("Tipo de dato incorrecto para el campo " + key);
-            }
-        });
-
-        ProductCategoryDao saved = productCategoryRepository.save(dao);
-
-        return new ProductCategory(
-                saved.getId(),
-                saved.getStoreId(),
-                saved.getName(),
-                saved.getDescription()
-        );
+        Optional<ProductCategoryDao> optionalCategory = productCategoryRepository.findById(id);
+        ProductCategoryDao categoryDaoOrigin = optionalCategory.orElseThrow(() -> new EntityNotFoundException("Categoría con ID: " + id + ", no encontrada"));
+        return productCategoryMapper.toModel(productCategoryRepository.save(productCategoryMapper.parcialUpdateToDao(categoryDaoOrigin, updates)));
     }
 }

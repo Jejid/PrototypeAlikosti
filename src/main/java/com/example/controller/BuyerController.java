@@ -3,7 +3,7 @@ package com.example.controller;
 import com.example.dto.BuyerDto;
 import com.example.model.Buyer;
 import com.example.service.BuyerService;
-import com.example.utility.MapperObject;
+import com.example.utility.BuyerMapper;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,21 +19,21 @@ import java.util.stream.Collectors;
 public class BuyerController {
 
     private final BuyerService buyerService;
-    private final MapperObject mapperObject;
+    private final BuyerMapper buyerMapper;
 
-    public BuyerController(BuyerService buyerService, MapperObject mapperObject) {
+    public BuyerController(BuyerService buyerService, BuyerMapper buyerMapper) {
         this.buyerService = buyerService;
-        this.mapperObject = mapperObject;
+        this.buyerMapper = buyerMapper;
     }
 
     @GetMapping
     public ResponseEntity<List<BuyerDto>> getAllBuyers() {
-        return new ResponseEntity<>(buyerService.getAllBuyers().stream().map(mapperObject::toPublicDto).collect(Collectors.toList()), HttpStatus.OK);
+        return new ResponseEntity<>(buyerService.getAllBuyers().stream().map(buyerMapper::toPublicDto).collect(Collectors.toList()), HttpStatus.OK);
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<BuyerDto> getBuyerById(@PathVariable Integer id) {
-        return new ResponseEntity<>(mapperObject.toPublicDto(buyerService.getBuyerById(id)), HttpStatus.OK);
+        return new ResponseEntity<>(buyerMapper.toPublicDto(buyerService.getBuyerById(id)), HttpStatus.OK);
     }
 
     @PostMapping

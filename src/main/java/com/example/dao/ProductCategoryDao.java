@@ -16,6 +16,7 @@ public class ProductCategoryDao {
 
     private int storeId;
 
+    @Column(name = "name", length = 30, nullable = false)
     private String name;
 
     private String description;

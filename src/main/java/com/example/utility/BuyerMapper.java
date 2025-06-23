@@ -16,7 +16,7 @@ import java.util.Map;
 
 @NoArgsConstructor
 @Component
-public class MapperObject {
+public class BuyerMapper {
 
     // ------------------ BUYER ------------------
 

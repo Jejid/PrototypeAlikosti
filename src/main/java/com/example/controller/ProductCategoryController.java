@@ -3,52 +3,48 @@ package com.example.controller;
 import com.example.dto.ProductCategoryDto;
 import com.example.model.ProductCategory;
 import com.example.service.ProductCategoryService;
+import com.example.utility.ProductCategoryMapper;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/product-categories")
 public class ProductCategoryController {
 
     private final ProductCategoryService productCategoryService;
+    private final ProductCategoryMapper productCategoryMapper;
 
-    public ProductCategoryController(ProductCategoryService productCategoryService) {
+    public ProductCategoryController(ProductCategoryService productCategoryService, ProductCategoryMapper productCategoryMapper) {
         this.productCategoryService = productCategoryService;
+        this.productCategoryMapper = productCategoryMapper;
     }
 
     @GetMapping
     public ResponseEntity<List<ProductCategoryDto>> getAllCategories() {
-        List<ProductCategory> categories = productCategoryService.getAllProductCategories();
-        List<ProductCategoryDto> dtos = new ArrayList<>();
-        for (ProductCategory category : categories) {
-            ProductCategoryDto dto = new ProductCategoryDto();
-            dto.setName(category.getName());
-            dto.setDescription(category.getDescription());
-            dto.setStoreId(category.getStoreId());
-            dtos.add(dto);
-        }
-        return new ResponseEntity<>(dtos, HttpStatus.OK);
+        return new ResponseEntity<>(
+                productCategoryService.getAllProductCategories().stream().map(productCategoryMapper::toPublicDto).collect(Collectors.toList()), HttpStatus.OK);
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<ProductCategoryDto> getCategoryById(@PathVariable Integer id) {
-        ProductCategory category = productCategoryService.getProductCategoryById(id);
-        ProductCategoryDto dto = new ProductCategoryDto();
-        dto.setName(category.getName());
-        dto.setDescription(category.getDescription());
-        dto.setStoreId(category.getStoreId());
-        return new ResponseEntity<>(dto, HttpStatus.OK);
+        return new ResponseEntity<>(
+                productCategoryMapper.toPublicDto(productCategoryService.getProductCategoryById(id)),
+                HttpStatus.OK);
     }
 
     @PostMapping
-    public ResponseEntity<Map<String, String>> createCategory(@Valid @RequestBody ProductCategory category) {
-        ProductCategory created = productCategoryService.createProductCategory(category);
+    public ResponseEntity<Map<String, String>> createCategory(@Valid @RequestBody ProductCategoryDto categoryDto) {
+        ProductCategory created = productCategoryService.createProductCategory(categoryDto);
+
         Map<String, String> response = new HashMap<>();
-        response.put("message", "Categoría '" + created.getName() + "' creada exitosamente");
+        response.put("message", "Categoría: " + created.getName() + " con ID: " + created.getId() + ", creada exitosamente");
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
@@ -56,24 +52,27 @@ public class ProductCategoryController {
     public ResponseEntity<Map<String, String>> deleteCategory(@PathVariable Integer id) {
         String name = productCategoryService.getProductCategoryById(id).getName();
         productCategoryService.deleteProductCategory(id);
+
         Map<String, String> response = new HashMap<>();
-        response.put("message", "Categoría '" + name + "' eliminada exitosamente");
+        response.put("message", "Categoría: " + name + " de ID: " + id + ", fue eliminada exitosamente");
         return ResponseEntity.ok(response);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Map<String, String>> updateCategory(@PathVariable Integer id, @Valid @RequestBody ProductCategory category) {
-        ProductCategory updated = productCategoryService.updateProductCategory(id, category);
+    public ResponseEntity<Map<String, String>> updateCategory(@PathVariable Integer id, @Valid @RequestBody ProductCategoryDto categoryDto) {
+        ProductCategory updated = productCategoryService.updateProductCategory(id, categoryDto);
+
         Map<String, String> response = new HashMap<>();
-        response.put("message", "Categoría '" + updated.getName() + "' actualizada exitosamente");
+        response.put("message", "Categoría: " + updated.getName() + " de ID: " + id + ", actualizada exitosamente");
         return ResponseEntity.ok(response);
     }
 
     @PatchMapping("/{id}")
     public ResponseEntity<Map<String, String>> partialUpdateCategory(@PathVariable Integer id, @RequestBody Map<String, Object> updates) {
         ProductCategory updated = productCategoryService.partialUpdateProductCategory(id, updates);
+
         Map<String, String> response = new HashMap<>();
-        response.put("message", "Categoría '" + updated.getName() + "' actualizada parcialmente");
+        response.put("message", "Categoría: " + updated.getName() + ", campo/s actualizado/s exitosamente");
         return ResponseEntity.ok(response);
     }
 }
