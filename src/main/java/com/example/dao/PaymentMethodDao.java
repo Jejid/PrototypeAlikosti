@@ -14,6 +14,7 @@ public class PaymentMethodDao {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
+    @Column(length = 20, nullable = false)
     private String name;
 
     private String description;

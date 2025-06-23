@@ -48,4 +48,11 @@ public class DeletionValidator {
             throw new RelatedEntityException("No se puede eliminar la categoria porque tiene al menos un producto asociado.");
         // otros if para relación con otras tablas
     }
+
+    // Validación para paymentMethod
+    public void deletionValidatorPaymentMethod(Integer paymentMethodId) {
+        if (paymentRepository.existsByPaymentMethodId(paymentMethodId))
+            throw new RelatedEntityException("No se puede eliminar el método de pago porque tiene un pago asociado.");
+        // otros if para relación con otras tablas
+    }
 }
