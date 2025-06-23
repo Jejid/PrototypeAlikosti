@@ -59,80 +59,22 @@ public class BuyerService {
 
     public Buyer partialUpdateBuyer(Integer id, Map<String, Object> updates) {
 
-        Optional<BuyerDao> optionalBuyerDao = buyerRepository.findById(id);
-        if (optionalBuyerDao.isEmpty()) {
-            throw new EntityNotFoundException("Comprador con ID: " + id + " no encontrado");
-        }
+        Optional<BuyerDao> optionalBuyer = buyerRepository.findById(id);
+        BuyerDao buyerDaoOrigin = optionalBuyer.orElseThrow(() -> new EntityNotFoundException("Comprador con ID: " + id + ", no encontrado"));
 
-        final BuyerDao buyerDao = optionalBuyerDao.get();
-
-        updates.forEach((key, value) -> {
-            try {
-                switch (key) {
-                    case "name":
-                        if (value == null || value instanceof String) buyerDao.setName((String) value);
-                        break;
-                    case "surname":
-                        if (value == null || value instanceof String) buyerDao.setSurname((String) value);
-                        break;
-                    case "birth_date":
-                        if (value == null || value instanceof String) buyerDao.setBirthDate(((String) value));
-                        break;
-                    case "cc":
-                        if (value == null || value instanceof String) buyerDao.setCc(((String) value));
-                        break;
-                    case "email":
-                        if (value == null || value instanceof String) buyerDao.setEmail((String) value);
-                        break;
-                    case "pass_account":
-                        if (value == null || value instanceof String) buyerDao.setPassAccount(((String) value));
-                        break;
-                    default:
-                        throw new IllegalArgumentException("El campo " + key + " no es válido o no existe para actualización.");
-                }
-            } catch (ClassCastException e) {
-                throw new IllegalArgumentException("Tipo de dato incorrecto para el campo " + key);
-            }
-        });
-
-        buyerRepository.save(buyerDao);
-
-        return new Buyer(
-                buyerDao.getId(),
-                buyerDao.getName(),
-                buyerDao.getSurname(),
-                buyerDao.getBirthDate(),
-                buyerDao.getCc(),
-                buyerDao.getEmail(),
-                buyerDao.getPassAccount());
+        return mapperObject.toModel(buyerRepository.save(mapperObject.parcialUpdateToDao(buyerDaoOrigin, updates)));
     }
 
-    public Buyer partialUpdateBuyer2(Integer id, Buyer updates) {
+     /* public Buyer partialUpdateBuyer2(Integer id, BuyerDto updatesDto) {
 
-        Optional<BuyerDao> optionalBuyerDao = buyerRepository.findById(id);
-        if (optionalBuyerDao.isEmpty()) {
-            throw new EntityNotFoundException("Comprador con ID: " + id + " no encontrado");
-        }
+        Optional<BuyerDao> optionalBuyer = buyerRepository.findById(id);
+        BuyerDao buyerDaoOrigin = optionalBuyer.orElseThrow(() -> new EntityNotFoundException("Comprador con ID: " + id + ", no encontrado"));
 
-        final BuyerDao buyerDao = optionalBuyerDao.get();
+        return mapperObject.toModel(buyerRepository.save(mapperObject.parcialUpdateToDao2(updatesDto, buyerDaoOrigin)));}
+     */
 
-        if (updates.getName() != null) buyerDao.setName(updates.getName());
-        if (updates.getSurname() != null) buyerDao.setSurname(updates.getSurname());
-        if (updates.getBirthDate() != null) buyerDao.setBirthDate(updates.getBirthDate());
-        if (updates.getCc() != null) buyerDao.setCc(updates.getCc());
-        if (updates.getEmail() != null) buyerDao.setEmail(updates.getEmail());
-        if (updates.getPassAccount() != null) buyerDao.setPassAccount(updates.getPassAccount());
-
-        buyerRepository.save(buyerDao);
-
-        return new Buyer(
-                buyerDao.getId(),
-                buyerDao.getName(),
-                buyerDao.getSurname(),
-                buyerDao.getBirthDate(),
-                buyerDao.getCc(),
-                buyerDao.getEmail(),
-                buyerDao.getPassAccount());
-    }
 
 }
+
+
+

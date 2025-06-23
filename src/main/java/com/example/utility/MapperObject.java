@@ -12,6 +12,8 @@ import com.example.model.ShoppingCartOrder;
 import lombok.NoArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.util.Map;
+
 @NoArgsConstructor
 @Component
 public class MapperObject {
@@ -73,6 +75,53 @@ public class MapperObject {
         dto.setPassAccount("confidencial");
         return dto;
     }
+
+    public BuyerDao parcialUpdateToDao(BuyerDao dao, Map<String, Object> updates) {
+
+        updates.forEach((key, value) -> {
+            try {
+                switch (key) {
+                    case "name":
+                        if (value == null || value instanceof String) dao.setName((String) value);
+                        break;
+                    case "surname":
+                        if (value == null || value instanceof String) dao.setSurname((String) value);
+                        break;
+                    case "birth_date":
+                        if (value == null || value instanceof String) dao.setBirthDate(((String) value));
+                        break;
+                    case "cc":
+                        if (value == null || value instanceof String) dao.setCc(((String) value));
+                        break;
+                    case "email":
+                        if (value == null || value instanceof String) dao.setEmail((String) value);
+                        break;
+                    case "pass_account":
+                        if (value == null || value instanceof String) dao.setPassAccount(((String) value));
+                        break;
+                    default:
+                        throw new IllegalArgumentException("El campo " + key + " no es válido o no existe para actualización.");
+                }
+            } catch (ClassCastException e) {
+                throw new IllegalArgumentException("Tipo de dato incorrecto para el campo " + key);
+            }
+        });
+
+        return dao;
+    }
+
+    /*public BuyerDao parcialUpdateToDao2(BuyerDto dto, BuyerDao daoOrigin) {
+        if (dto == null) return null;
+
+        if (dto.getName() != null) daoOrigin.setName(dto.getName());
+        if (dto.getSurname() != null) daoOrigin.setSurname(dto.getSurname());
+        if (dto.getBirthDate() != null) daoOrigin.setBirthDate(dto.getBirthDate());
+        if (dto.getCc() != null) daoOrigin.setCc(dto.getCc());
+        if (dto.getEmail() != null) daoOrigin.setEmail(dto.getEmail());
+        if (dto.getPassAccount() != null) daoOrigin.setPassAccount(dto.getPassAccount());
+
+        return daoOrigin;
+    }*/
 
 
     // ------------------ SHOPPING CART ORDER ------------------

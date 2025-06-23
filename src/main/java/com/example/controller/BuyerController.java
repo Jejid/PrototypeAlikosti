@@ -52,7 +52,7 @@ public class BuyerController {
         buyerService.deleteBuyer(id);
 
         Map<String, String> response = new HashMap<>();
-        response.put("message", "Comprador: " + nameBuyer + " eliminado exitosamente");
+        response.put("message", "Comprador: " + nameBuyer + "de ID: " + id + ", fue eliminado exitosamente");
         return ResponseEntity.ok(response);
     }
 
@@ -72,13 +72,12 @@ public class BuyerController {
         return ResponseEntity.ok(response);
     }
 
-    @PatchMapping("/a/{id}")
-    public ResponseEntity<Map<String, String>> partialUpdateBuyer2(@PathVariable Integer id, @RequestBody Buyer updates) {
-        Buyer updatedBuyer = buyerService.partialUpdateBuyer2(id, updates);
+    /*@PatchMapping("/a/{id}")
+    public ResponseEntity<Map<String, String>> partialUpdateBuyer2(@PathVariable Integer id, @RequestBody BuyerDto updatesDto) {
+        Buyer updatedBuyer = buyerService.partialUpdateBuyer2(id, updatesDto);
         Map<String, String> response = new HashMap<>();
         response.put("message", "Comprador: " + updatedBuyer.getName() + ", campo/s actualizado/s exitosamente");
         return ResponseEntity.ok(response);
-    }
-
+    }*/
 
 }
