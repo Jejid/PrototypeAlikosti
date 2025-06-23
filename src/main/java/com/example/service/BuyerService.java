@@ -2,16 +2,18 @@ package com.example.service;
 
 import com.example.dao.BuyerDao;
 import com.example.dto.BuyerDto;
+import com.example.exception.BadRequestException;
 import com.example.exception.EntityNotFoundException;
 import com.example.model.Buyer;
 import com.example.repository.BuyerRepository;
 import com.example.utility.MapperObject;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class BuyerService {
@@ -25,76 +27,32 @@ public class BuyerService {
 
     public List<Buyer> getAllBuyers() {
         List<BuyerDao> buyerListDao = buyerRepository.findAll();
-        List<Buyer> buyerList = new ArrayList<>();
-
-        for (BuyerDao buyerDao : buyerListDao) {
-            Buyer buyer = new Buyer();
-            buyer.setId(buyerDao.getId());
-            buyer.setName(buyerDao.getName());
-            buyer.setSurname(buyerDao.getSurname());
-            buyer.setBirthDate(buyerDao.getBirthDate());
-            buyer.setCc(buyerDao.getCc());
-            buyer.setEmail(buyerDao.getEmail());
-            buyer.setPassAccount(buyerDao.getPassAccount());
-            buyerList.add(buyer);
-        }
-
-        return buyerList;
+        return buyerListDao.stream().map(mapperObject::toModel).collect(Collectors.toList());
     }
 
     public Buyer getBuyerById(Integer id) {
-        Optional<BuyerDao> buyerDao = buyerRepository.findById(id);
-
-        BuyerDao buyerDao1 = buyerDao.orElseThrow(() -> new EntityNotFoundException("Comprador con ID: " + id + ", no encontrado"));
-
-        Buyer buyer = new Buyer();
-        buyer.setId(buyerDao1.getId());
-        buyer.setName(buyerDao1.getName());
-        buyer.setSurname(buyerDao1.getSurname());
-        buyer.setBirthDate(buyerDao1.getBirthDate());
-        buyer.setCc(buyerDao1.getCc());
-        buyer.setEmail(buyerDao1.getEmail());
-        buyer.setPassAccount(buyerDao1.getPassAccount());
-
-        return buyer;
+        Optional<BuyerDao> optionalBuyer = buyerRepository.findById(id);
+        BuyerDao buyerDao = optionalBuyer.orElseThrow(() -> new EntityNotFoundException("Comprador con ID: " + id + ", no encontrado"));
+        return mapperObject.toModel(buyerDao);
     }
 
     public Buyer createBuyer(BuyerDto buyerDto) {
         return mapperObject.toModel(buyerRepository.save(mapperObject.toDao(mapperObject.toModel(buyerDto))));
     }
 
-    public Buyer updateBuyer(Integer id, Buyer updatedBuyer) {
-        Optional<BuyerDao> optionalBuyerDao = buyerRepository.findById(id);
-
-        if (optionalBuyerDao.isEmpty()) {
-            throw new EntityNotFoundException("Comprador con ID: " + id + " no encontrado");
-        }
-
-        BuyerDao buyerDao = optionalBuyerDao.get();
-
-        buyerDao.setName(updatedBuyer.getName());
-        buyerDao.setSurname(updatedBuyer.getSurname());
-        buyerDao.setBirthDate(updatedBuyer.getBirthDate());
-        buyerDao.setCc(updatedBuyer.getCc());
-        buyerDao.setEmail(updatedBuyer.getEmail());
-        buyerDao.setPassAccount(updatedBuyer.getPassAccount());
-
-        buyerRepository.save(buyerDao);
-
-        return new Buyer(buyerDao.getId(),
-                buyerDao.getName(),
-                buyerDao.getSurname(),
-                buyerDao.getBirthDate(),
-                buyerDao.getCc(),
-                buyerDao.getEmail(),
-                buyerDao.getPassAccount());
-    }
 
     public void deleteBuyer(Integer id) {
         if (buyerRepository.findById(id).isEmpty()) {
             throw new EntityNotFoundException("Comprador con ID " + id + ", no encontrado");
         }
         buyerRepository.deleteById(id);
+    }
+
+    public Buyer updateBuyer(Integer id, BuyerDto updatedBuyerDto) {
+        buyerRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Comprador con ID: " + id + ", no encontrado"));
+        if (!Objects.equals(updatedBuyerDto.getId(), id))
+            throw new BadRequestException("El ID ingresado en el JSON no coincide con el ID de actualización: " + id);
+        return mapperObject.toModel(buyerRepository.save(mapperObject.toDao(mapperObject.toModel(updatedBuyerDto))));
     }
 
     public Buyer partialUpdateBuyer(Integer id, Map<String, Object> updates) {

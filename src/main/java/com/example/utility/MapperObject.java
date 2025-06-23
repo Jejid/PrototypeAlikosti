@@ -45,20 +45,6 @@ public class MapperObject {
         dao.setPassAccount(model.getPassAccount());
         return dao;
     }
-    /*
-    // DAO -> DTO
-    public BuyerDto toDto(BuyerDao dao) {
-        if (dao == null) return null;
-        BuyerDto dto = new BuyerDto();
-        dto.setId(dao.getId());
-        dto.setName(dao.getName());
-        dto.setSurname(dao.getSurname());
-        dto.setBirthDate(dao.getBirthDate());
-        dto.setCc(dao.getCc());
-        dto.setEmail(dao.getEmail());
-        dto.setPassAccount(dao.getPassAccount());
-        return dto;
-    }*/
 
     // DAO -> Model
     public Buyer toModel(BuyerDao dao) {
@@ -73,6 +59,21 @@ public class MapperObject {
         buyer.setPassAccount(dao.getPassAccount());
         return buyer;
     }
+
+    // Model -> DTO
+    public BuyerDto toPublicDto(Buyer buyer) {
+        if (buyer == null) return null;
+        BuyerDto dto = new BuyerDto();
+        dto.setId(buyer.getId());
+        dto.setName(buyer.getName());
+        dto.setSurname(buyer.getSurname());
+        dto.setBirthDate(buyer.getBirthDate());
+        dto.setEmail(buyer.getEmail());
+        dto.setCc("confidencial");
+        dto.setPassAccount("confidencial");
+        return dto;
+    }
+
 
     // ------------------ SHOPPING CART ORDER ------------------
 
