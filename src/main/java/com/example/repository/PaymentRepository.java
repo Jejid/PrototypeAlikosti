@@ -10,4 +10,5 @@ public interface PaymentRepository extends JpaRepository<PaymentDao, Integer> {
     boolean existsByBuyerId(Integer buyerId);
 
     boolean existsByPaymentMethodId(Integer paymentMethodId);
+
 }

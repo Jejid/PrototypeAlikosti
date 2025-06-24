@@ -1,10 +1,12 @@
 package com.example.model;
 
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Setter
 @Getter
+@NoArgsConstructor
 public class Payment {
 
     private int id;
@@ -16,9 +18,7 @@ public class Payment {
     private Integer codeConfirmation;
     private String cardNumber;
     private boolean refunded;
-
-    public Payment() {
-    }
+    
 
     public Payment(int id, int buyerId, int paymentMethodId, int totalOrder, String date,
                    int confirmation, Integer codeConfirmation, String cardNumber, boolean refunded) {

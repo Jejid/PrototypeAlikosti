@@ -49,6 +49,13 @@ public class DeletionValidator {
         // otros if para relación con otras tablas
     }
 
+    // Validación para payment
+    public void deletionValidatorPayment(Integer paymentId) {
+        if (orderProcessedRepository.existsByPaymentId(paymentId))
+            throw new RelatedEntityException("No se puede eliminar el pago porque tiene una orden procesada (venta) asociada.");
+        // otros if para relación con otras tablas
+    }
+
     // Validación para paymentMethod
     public void deletionValidatorPaymentMethod(Integer paymentMethodId) {
         if (paymentRepository.existsByPaymentMethodId(paymentMethodId))

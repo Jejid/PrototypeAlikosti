@@ -12,7 +12,7 @@ import lombok.Setter;
 @Getter
 public class PaymentDto {
 
-    //private int id;
+    private int id;
 
     @NotNull(message = "El ID del comprador es necesario")
     private int buyerId;
@@ -24,7 +24,6 @@ public class PaymentDto {
     @Min(value = 0, message = "El total del pedido debe ser mayor o igual a 0")
     private int totalOrder;
 
-    @Column(length = 10, nullable = false)
     @NotBlank(message = "La fecha de pago es obligatoria")
     private String date;
 
@@ -32,11 +31,11 @@ public class PaymentDto {
     @Min(value = 0, message = "El estado de confirmación debe ser 0, 1 o 2")
     @Max(value = 2, message = "El estado de confirmación debe ser 0, 1 o 2")
     private int confirmation;
+
+    @Column(name = "code_confirmation")
     private Integer codeConfirmation;
 
-    @Column(length = 20)
     private String cardNumber;
 
-    @Column(nullable = false)
     private boolean refunded = false;
 }

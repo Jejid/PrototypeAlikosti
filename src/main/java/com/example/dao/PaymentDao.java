@@ -14,19 +14,25 @@ public class PaymentDao {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
+    @Column(name = "buyer_id")
     private int buyerId;
 
+    @Column(name = "payment_method_id")
     private int paymentMethodId;
 
+    @Column(name = "total_order")
     private int totalOrder;
 
+    @Column(length = 10, nullable = false)
     private String date;
 
     private int confirmation;
 
     private Integer codeConfirmation;
 
+    @Column(name = "card_number", length = 20)
     private String cardNumber;
 
+    @Column(nullable = false)
     private boolean refunded = false;
 }

@@ -64,7 +64,7 @@ public class CreditCardMapper {
         dto.setId(model.getId());
         dto.setBuyerId(model.getBuyerId());
         dto.setName(model.getName());
-        dto.setCardNumber("conficencial");
+        dto.setCardNumber("**** **** **** " + model.getCardNumber().substring(model.getCardNumber().length() - 4)); // se toman los ultimos 4 digitos
         dto.setCardDate("conficencial");
         dto.setCvcCode(0);
         dto.setTokenizedCode(model.getTokenizedCode());
