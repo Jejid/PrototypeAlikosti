@@ -3,89 +3,78 @@ package com.example.controller;
 import com.example.dto.RequestRefundDto;
 import com.example.model.RequestRefund;
 import com.example.service.RequestRefundService;
+import com.example.utility.RequestRefundMapper;
 import jakarta.validation.Valid;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/refunds")
 public class RequestRefundController {
-    private static final Logger logger = LoggerFactory.getLogger(RequestRefundController.class);
-    private final RequestRefundService requestRefundService;
 
-    public RequestRefundController(RequestRefundService requestRefundService) {
+    private final RequestRefundService requestRefundService;
+    private final RequestRefundMapper requestRefundMapper;
+
+    public RequestRefundController(RequestRefundService requestRefundService, RequestRefundMapper requestRefundMapper) {
         this.requestRefundService = requestRefundService;
+        this.requestRefundMapper = requestRefundMapper;
     }
 
     @GetMapping
-    public ResponseEntity<List<RequestRefundDto>> getAllRefunds() {
-        List<RequestRefundDto> refundDtos = new ArrayList<>();
-        List<RequestRefund> refundList = requestRefundService.getAllRefunds();
-
-        for (RequestRefund refund : refundList) {
-            RequestRefundDto dto = new RequestRefundDto();
-            //dto.setId(refund.getId());
-            dto.setBuyerId(refund.getBuyerId());
-            dto.setPaymentId(refund.getPaymentId());
-            dto.setConfirmation(refund.getConfirmation());
-            dto.setRefundType(refund.getRefundType());
-            refundDtos.add(dto);
-        }
-
-        return new ResponseEntity<>(refundDtos, HttpStatus.OK);
+    public ResponseEntity<List<RequestRefundDto>> getAllRequestRefunds() {
+        return new ResponseEntity<>(
+                requestRefundService.getAllRequestRefunds().stream()
+                        .map(requestRefundMapper::toPublicDto)
+                        .collect(Collectors.toList()),
+                HttpStatus.OK);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<RequestRefundDto> getRefundById(@PathVariable Integer id) {
-        RequestRefund refund = requestRefundService.getRefundById(id);
-
-        RequestRefundDto dto = new RequestRefundDto();
-        //dto.setId(refund.getId());
-        dto.setBuyerId(refund.getBuyerId());
-        dto.setPaymentId(refund.getPaymentId());
-        dto.setConfirmation(refund.getConfirmation());
-        dto.setRefundType(refund.getRefundType());
-
-        return new ResponseEntity<>(dto, HttpStatus.OK);
+    public ResponseEntity<RequestRefundDto> getRequestRefundById(@PathVariable Integer id) {
+        return new ResponseEntity<>(
+                requestRefundMapper.toPublicDto(requestRefundService.getRequestRefundById(id)),
+                HttpStatus.OK);
     }
 
     @PostMapping
-    public ResponseEntity<Map<String, String>> createRefund(@Valid @RequestBody RequestRefund refund) {
-        RequestRefund created = requestRefundService.createRefund(refund);
+    public ResponseEntity<Map<String, String>> createRequestRefund(@Valid @RequestBody RequestRefundDto requestRefundDto) {
+        RequestRefund created = requestRefundService.createRequestRefund(requestRefundDto);
 
         Map<String, String> response = new HashMap<>();
-        response.put("message", "Reembolso con ID: " + created.getId() + " creado exitosamente");
+        response.put("message", "Solicitud de reembolso con ID: " + created.getId() + ", creada exitosamente");
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Map<String, String>> deleteRefund(@PathVariable Integer id) {
-        requestRefundService.deleteRefund(id);
+    public ResponseEntity<Map<String, String>> deleteRequestRefund(@PathVariable Integer id) {
+        requestRefundService.deleteRequestRefund(id);
+
         Map<String, String> response = new HashMap<>();
-        response.put("message", "Reembolso con ID " + id + " eliminado exitosamente");
+        response.put("message", "Solicitud de reembolso con ID: " + id + ", fue eliminada exitosamente");
         return ResponseEntity.ok(response);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Map<String, String>> updateRefund(@PathVariable Integer id, @Valid @RequestBody RequestRefund refund) {
-        RequestRefund updated = requestRefundService.updateRefund(id, refund);
+    public ResponseEntity<Map<String, String>> updateRequestRefund(@PathVariable Integer id, @Valid @RequestBody RequestRefundDto requestRefundDto) {
+        RequestRefund updated = requestRefundService.updateRequestRefund(id, requestRefundDto);
 
         Map<String, String> response = new HashMap<>();
-        response.put("message", "Reembolso con ID " + updated.getId() + " actualizado exitosamente");
+        response.put("message", "Solicitud de reembolso con ID: " + id + ", actualizada exitosamente");
         return ResponseEntity.ok(response);
     }
 
     @PatchMapping("/{id}")
-    public ResponseEntity<Map<String, String>> partialUpdateRefund(@PathVariable Integer id, @RequestBody Map<String, Object> updates) {
-        RequestRefund updated = requestRefundService.partialUpdateRefund(id, updates);
+    public ResponseEntity<Map<String, String>> partialUpdateRequestRefund(@PathVariable Integer id, @RequestBody Map<String, Object> updates) {
+        RequestRefund updated = requestRefundService.partialUpdateRequestRefund(id, updates);
 
         Map<String, String> response = new HashMap<>();
-        response.put("message", "Reembolso con ID " + updated.getId() + " actualizado parcialmente con éxito");
+        response.put("message", "Solicitud de reembolso con ID: " + updated.getId() + ", campo/s actualizado/s exitosamente");
         return ResponseEntity.ok(response);
     }
 }

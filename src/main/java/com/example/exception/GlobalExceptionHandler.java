@@ -149,7 +149,7 @@ public class GlobalExceptionHandler {
 
         // Verificar si el mensaje contiene el error del trigger
         if (message.contains("Error: Pago No confirmado")) {
-            response.put("error", "No puedes solicitar reembolso porque el pago aún no se ha confirmado.");
+            response.put("error", "No puedes solicitar reembolso porque el pago aún no se ha confirmado o no existe dicho pago.");
         } else if (message.contains("Error: Pago rechazado")) {
             response.put("error", "No puedes solicitar reembolso porque el pago fue rechazado.");
         } else {
