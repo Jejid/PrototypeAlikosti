@@ -3,106 +3,106 @@ package com.example.controller;
 import com.example.dto.OrderProcessedDto;
 import com.example.model.OrderProcessed;
 import com.example.service.OrderProcessedService;
+import com.example.utility.OrderProcessedMapper;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/orderprocessed")
 public class OrderProcessedController {
 
     private final OrderProcessedService orderProcessedService;
+    private final OrderProcessedMapper orderProcessedMapper;
 
-    public OrderProcessedController(OrderProcessedService orderProcessedService) {
+    public OrderProcessedController(OrderProcessedService orderProcessedService, OrderProcessedMapper orderProcessedMapper) {
         this.orderProcessedService = orderProcessedService;
+        this.orderProcessedMapper = orderProcessedMapper;
     }
 
     @GetMapping
-    public ResponseEntity<List<OrderProcessedDto>> getAllOrderProcessed() {
-        List<OrderProcessed> orders = orderProcessedService.getAllOrderProcessed();
-        List<OrderProcessedDto> dtos = new ArrayList<>();
-        for (OrderProcessed order : orders) {
-            dtos.add(toDto(order));
-        }
-        return new ResponseEntity<>(dtos, HttpStatus.OK);
+    public ResponseEntity<List<OrderProcessedDto>> getAllOrdersProcessed() {
+        return new ResponseEntity<>(
+                orderProcessedService.getAllOrdersProcessed().stream()
+                        .map(orderProcessedMapper::toPublicDto)
+                        .collect(Collectors.toList()),
+                HttpStatus.OK);
     }
 
     @GetMapping("/payment/{paymentId}/product/{productId}")
     public ResponseEntity<OrderProcessedDto> getOrderProcessedById(@PathVariable int paymentId, @PathVariable int productId) {
-        OrderProcessed order = orderProcessedService.getOrderProcessedById(paymentId, productId);
-        return new ResponseEntity<>(toDto(order), HttpStatus.OK);
-    }
-
-    @GetMapping("/payment/{paymentId}")
-    public ResponseEntity<List<OrderProcessedDto>> getOrderByPaymentId(@PathVariable int paymentId) {
-        List<OrderProcessed> paymentOrders = orderProcessedService.getOrderByPaymentId(paymentId);
-        List<OrderProcessedDto> dtos = new ArrayList<>();
-        for (OrderProcessed order : paymentOrders) {
-            dtos.add(toDto(order));
-        }
-        return new ResponseEntity<>(dtos, HttpStatus.OK);
+        return new ResponseEntity<>(
+                orderProcessedMapper.toPublicDto(orderProcessedService.getOrderProcessedById(paymentId, productId)),
+                HttpStatus.OK);
     }
 
     @PostMapping
-    public ResponseEntity<Map<String, String>> createOrderProcessed(@Valid @RequestBody OrderProcessed order) {
-        OrderProcessed created = orderProcessedService.createOrderProcessed(order);
+    public ResponseEntity<Map<String, String>> createOrderProcessed(@Valid @RequestBody OrderProcessedDto dto) {
+        OrderProcessed created = orderProcessedService.createOrderProcessed(dto);
+
         Map<String, String> response = new HashMap<>();
-        response.put("message", "OrderProcessed creado exitosamente con paymentId: " + created.getPaymentId() + ", productId: " + created.getProductId());
+        response.put("message", "Orden procesada exitosamente para el pago con ID: " + created.getPaymentId());
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @PostMapping("/many")
-    public ResponseEntity<?> createTotalOrderProcessed(@RequestBody List<OrderProcessed> orders) {
-        orderProcessedService.createTotalOrderProcessed(orders);
+    public ResponseEntity<Map<String, String>> createMultipleOrdersProcessed(@RequestBody List<OrderProcessedDto> dtoList) {
+        orderProcessedService.createMultipleOrdersProcessed(dtoList);
         Map<String, String> response = new HashMap<>();
-        response.put("message", "Orden procesada total creada para paymentId: " + orders.get(0).getPaymentId());
+        response.put("message", "Órdenes procesadas exitosamente para el pago con ID: " + dtoList.get(0).getPaymentId());
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @GetMapping("/payment/{paymentId}")
+    public ResponseEntity<List<OrderProcessedDto>> getOrdersByPaymentId(@PathVariable int paymentId) {
+        return new ResponseEntity<>(
+                orderProcessedService.getOrdersByPaymentId(paymentId).stream()
+                        .map(orderProcessedMapper::toPublicDto)
+                        .collect(Collectors.toList()),
+                HttpStatus.OK);
     }
 
     @DeleteMapping("/payment/{paymentId}/product/{productId}")
     public ResponseEntity<Map<String, String>> deleteOrderProcessed(@PathVariable int paymentId, @PathVariable int productId) {
         orderProcessedService.deleteOrderProcessed(paymentId, productId);
         Map<String, String> response = new HashMap<>();
-        response.put("message", "OrderProcessed eliminado para paymentId: " + paymentId + ", productId: " + productId);
+        response.put("message", "Orden procesada eliminada para paymentId: " + paymentId + ", productId: " + productId);
         return ResponseEntity.ok(response);
     }
 
     @DeleteMapping("/payment/{paymentId}")
-    public ResponseEntity<Map<String, String>> deleteOrderByPaymentId(@PathVariable int paymentId) {
+    public ResponseEntity<Map<String, String>> deleteOrdersByPaymentId(@PathVariable int paymentId) {
         orderProcessedService.deleteOrdersByPaymentId(paymentId);
         Map<String, String> response = new HashMap<>();
-        response.put("message", "Orden procesada eliminada para paymentId: " + paymentId);
+        response.put("message", "Órdenes procesadas eliminadas para el pago con ID: " + paymentId);
         return ResponseEntity.ok(response);
     }
 
     @PutMapping("/payment/{paymentId}/product/{productId}")
-    public ResponseEntity<Map<String, String>> updateOrderProcessed(@PathVariable int paymentId, @PathVariable int productId,
-                                                                    @Valid @RequestBody OrderProcessed order) {
-        OrderProcessed updated = orderProcessedService.updateOrderProcessed(paymentId, productId, order);
-        Map<String, String> response = new HashMap<>();
-        response.put("message", "OrderProcessed actualizado para paymentId: " + updated.getPaymentId() + ", productId: " + updated.getProductId());
+    public ResponseEntity<Map<String, Object>> updateOrderProcessed(@PathVariable int paymentId, @PathVariable int productId,
+                                                                    @Valid @RequestBody OrderProcessedDto dto) {
+        OrderProcessed updated = orderProcessedService.updateOrderProcessed(paymentId, productId, dto);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("message", "Orden procesada actualizada para paymentId: " + paymentId + ", productId: " + productId);
+        response.put("data", orderProcessedMapper.toPublicDto(updated));
         return ResponseEntity.ok(response);
     }
 
     @PatchMapping("/payment/{paymentId}/product/{productId}")
-    public ResponseEntity<Map<String, String>> partialUpdateOrderProcessed(@PathVariable int paymentId, @PathVariable int productId,
+    public ResponseEntity<Map<String, Object>> partialUpdateOrderProcessed(@PathVariable int paymentId, @PathVariable int productId,
                                                                            @RequestBody Map<String, Object> updates) {
         OrderProcessed updated = orderProcessedService.partialUpdateOrderProcessed(paymentId, productId, updates);
-        Map<String, String> response = new HashMap<>();
-        response.put("message", "OrderProcessed parcialmente actualizado para paymentId: " + updated.getPaymentId() + ", productId: " + updated.getProductId());
-        return ResponseEntity.ok(response);
-    }
 
-    // de model a dto
-    private OrderProcessedDto toDto(OrderProcessed order) {
-        OrderProcessedDto dto = new OrderProcessedDto();
-        dto.setPaymentId(order.getPaymentId());
-        dto.setProductId(order.getProductId());
-        dto.setUnits(order.getUnits());
-        dto.setTotal_product(order.getTotal_product());
-        return dto;
+        Map<String, Object> response = new HashMap<>();
+        response.put("message", "Orden procesada parcialmente actualizada para paymentId: " + paymentId + ", productId: " + productId);
+        response.put("data", orderProcessedMapper.toPublicDto(updated));
+        return ResponseEntity.ok(response);
     }
 }

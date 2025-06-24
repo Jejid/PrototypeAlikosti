@@ -67,7 +67,7 @@ public class ShoppingCartOrderService {
         return userOrder;
     }
 
-    public void createTotalOrder(List<ShoppingCartOrderDto> orderDto) {
+    public void createMultiplesItemOrder(List<ShoppingCartOrderDto> orderDto) {
         if (orderDto.isEmpty()) throw new IllegalArgumentException("La lista de items viene vacia.");
         orderDto.stream().map(dto -> itemOrderMapper.toDao(itemOrderMapper.toModel(dto))).forEach(orderRepository::save);
     }

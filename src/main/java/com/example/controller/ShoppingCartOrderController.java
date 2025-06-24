@@ -55,8 +55,8 @@ public class ShoppingCartOrderController {
     }
 
     @PostMapping("/many")
-    public ResponseEntity<?> createTotalOrder(@RequestBody List<ShoppingCartOrderDto> orderListDto) {
-        shoppingCartOrderService.createTotalOrder(orderListDto);
+    public ResponseEntity<?> createMultiplesItemOrder(@RequestBody List<ShoppingCartOrderDto> orderListDto) {
+        shoppingCartOrderService.createMultiplesItemOrder(orderListDto);
         Map<String, String> response = new HashMap<>();
         response.put("message", "Orden total creada para comprador con ID: " + orderListDto.get(0).getBuyerId());
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
