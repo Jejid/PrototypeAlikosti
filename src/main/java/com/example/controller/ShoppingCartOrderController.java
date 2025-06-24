@@ -1,7 +1,6 @@
 package com.example.controller;
 
 import com.example.dto.ShoppingCartOrderDto;
-import com.example.model.ShoppingCartOrder;
 import com.example.service.BuyerService;
 import com.example.service.ShoppingCartOrderService;
 import com.example.utility.ShoppingCartOrderMapper;
@@ -22,11 +21,13 @@ public class ShoppingCartOrderController {
     private final ShoppingCartOrderService shoppingCartOrderService;
     private final ShoppingCartOrderMapper itemOrderMapper;
     private final BuyerService buyerService;
+    private final ShoppingCartOrderMapper shoppingCartOrderMapper;
 
-    public ShoppingCartOrderController(ShoppingCartOrderService shoppingCartOrderService, ShoppingCartOrderMapper itemOrderMapper, BuyerService buyerService) {
+    public ShoppingCartOrderController(ShoppingCartOrderService shoppingCartOrderService, ShoppingCartOrderMapper itemOrderMapper, BuyerService buyerService, ShoppingCartOrderMapper shoppingCartOrderMapper) {
         this.shoppingCartOrderService = shoppingCartOrderService;
         this.itemOrderMapper = itemOrderMapper;
         this.buyerService = buyerService;
+        this.shoppingCartOrderMapper = shoppingCartOrderMapper;
     }
 
     @GetMapping
@@ -54,13 +55,12 @@ public class ShoppingCartOrderController {
     }
 
     @PostMapping("/many")
-    public ResponseEntity<?> createTotalOrder(@RequestBody List<ShoppingCartOrder> orderList) {
-        shoppingCartOrderService.createTotalOrder(orderList);
+    public ResponseEntity<?> createTotalOrder(@RequestBody List<ShoppingCartOrderDto> orderListDto) {
+        shoppingCartOrderService.createTotalOrder(orderListDto);
         Map<String, String> response = new HashMap<>();
-        response.put("message", "Orden total creada para comprador con ID: " + orderList.get(0).getBuyerId());
+        response.put("message", "Orden total creada para comprador con ID: " + orderListDto.get(0).getBuyerId());
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
-
 
     @DeleteMapping("/buyer/{buyerId}/product/{productId}")
     public ResponseEntity<Map<String, String>> deleteItemOrder(@PathVariable int buyerId, @PathVariable int productId) {
@@ -79,30 +79,23 @@ public class ShoppingCartOrderController {
     }
 
     @PutMapping("/buyer/{buyerId}/product/{productId}")
-    public ResponseEntity<Map<String, String>> updateItemOrder(@PathVariable int buyerId, @PathVariable int productId,
-                                                               @Valid @RequestBody ShoppingCartOrder order) {
-        ShoppingCartOrder updated = shoppingCartOrderService.updateItemOrder(buyerId, productId, order);
-        Map<String, String> response = new HashMap<>();
-        response.put("message", "Item de orden actualizado para buyerId: " + updated.getBuyerId() + ", productId: " + updated.getProductId());
+    public ResponseEntity<Map<String, Object>> updateItemOrder(@PathVariable int buyerId, @PathVariable int productId,
+                                                               @Valid @RequestBody ShoppingCartOrderDto orderDto) {
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("message", "Item de orden actualizado para buyerId: " + buyerId + ", productId: " + productId);
+        response.put("data", shoppingCartOrderMapper.toPublicDto(shoppingCartOrderService.updateItemOrder(buyerId, productId, orderDto)));
         return ResponseEntity.ok(response);
     }
 
     @PatchMapping("/buyer/{buyerId}/product/{productId}")
-    public ResponseEntity<Map<String, String>> partialUpdateItemOrder(@PathVariable int buyerId, @PathVariable int productId,
+    public ResponseEntity<Map<String, Object>> partialUpdateItemOrder(@PathVariable int buyerId, @PathVariable int productId,
                                                                       @RequestBody Map<String, Object> updates) {
-        ShoppingCartOrder updated = shoppingCartOrderService.partialUpdateItemOrder(buyerId, productId, updates);
-        Map<String, String> response = new HashMap<>();
-        response.put("message", "Item de orden parcialmente actualizado para buyerId: " + updated.getBuyerId() + ", productId: " + updated.getProductId());
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("message", "Item de orden parcialmente actualizado para buyerId: " + buyerId + ", productId: " + productId);
+        response.put("data", shoppingCartOrderMapper.toPublicDto(shoppingCartOrderService.partialUpdateItemOrder(buyerId, productId, updates)));
         return ResponseEntity.ok(response);
     }
 
-    // metodo auxiliar para mapear modelo a DTO
-    private ShoppingCartOrderDto toDto(ShoppingCartOrder order) {
-        ShoppingCartOrderDto dto = new ShoppingCartOrderDto();
-        dto.setBuyerId(order.getBuyerId());
-        dto.setProductId(order.getProductId());
-        dto.setUnits(order.getUnits());
-        dto.setTotal_product(order.getTotal_product());
-        return dto;
-    }
 }

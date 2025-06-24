@@ -57,25 +57,25 @@ public class ShoppingCartOrderMapper {
     }
 
     // Actualización parcial del DAO
-    public ShoppingCartOrderDao parcialUpdateToDao(ShoppingCartOrderDao dao, Map<String, Object> updates) {
+    public ShoppingCartOrderDao partialUpdateToDao(ShoppingCartOrderDao dao, Map<String, Object> updates) {
 
         updates.forEach((key, value) -> {
             try {
                 switch (key) {
                     case "buyer_id":
                     case "buyerId":
-                        if (value instanceof Number) dao.setBuyerId(((Number) value).intValue());
+                        //if (value instanceof Number) dao.setBuyerId(((Number) value).intValue());
                         break;
                     case "product_id":
                     case "productId":
-                        if (value instanceof Number) dao.setProductId(((Number) value).intValue());
+                        //if (value instanceof Number) dao.setProductId(((Number) value).intValue());
                         break;
                     case "units":
-                        if (value instanceof Number) dao.setUnits(((Number) value).intValue());
+                        //if (value instanceof Number) dao.setUnits(((Number) value).intValue());
                         break;
                     case "total_product":
                     case "totalProduct":
-                        if (value instanceof Number) dao.setTotal_product(((Number) value).intValue());
+                        //if (value instanceof Number) dao.setTotal_product(((Number) value).intValue());
                         break;
                     default:
                         throw new IllegalArgumentException("El campo " + key + " no es válido o no existe para actualización.");

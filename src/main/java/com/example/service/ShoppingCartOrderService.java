@@ -59,32 +59,33 @@ public class ShoppingCartOrderService {
             if (dao.getBuyerId() == buyerId) userOrder.add(toModel(dao));
         }*/
 
+        buyerService.getBuyerById(buyerId);
         List<ShoppingCartOrder> userOrder = orderRepository.findAll().stream().filter(dao -> dao.getBuyerId() == buyerId).map(itemOrderMapper::toModel).collect(Collectors.toList());
 
         if (userOrder.isEmpty())
-            throw new EntityNotFoundException("La Orden o Carrito del comprador con ID: " + buyerId + " está vacía o no existe el comprador");
+            throw new EntityNotFoundException("La Orden o Carrito del comprador con ID: " + buyerId + " está vacía");
         return userOrder;
     }
 
-    public void createTotalOrder(List<ShoppingCartOrder> orders) {
-        if (orders.isEmpty()) throw new IllegalArgumentException("La lista de items viene vacia.");
-
-        for (ShoppingCartOrder order : orders) {
-            ShoppingCartOrderDao dao = toDao(order);
-            orderRepository.save(dao);
-        }
+    public void createTotalOrder(List<ShoppingCartOrderDto> orderDto) {
+        if (orderDto.isEmpty()) throw new IllegalArgumentException("La lista de items viene vacia.");
+        orderDto.stream().map(dto -> itemOrderMapper.toDao(itemOrderMapper.toModel(dto))).forEach(orderRepository::save);
     }
 
-    public ShoppingCartOrder updateItemOrder(int buyerId, int productId, ShoppingCartOrder order) {
-        ShoppingCartOrderKey key = new ShoppingCartOrderKey(buyerId, productId);
-        ShoppingCartOrderDao existingDao = orderRepository.findById(key)
-                .orElseThrow(() -> new EntityNotFoundException("Item de la orden con buyerId: " + buyerId + " productID: " + productId + " no existe"));
+    public ShoppingCartOrder updateItemOrder(int buyerId, int productId, ShoppingCartOrderDto orderDto) {
 
-        existingDao.setUnits(order.getUnits());
-        existingDao.setTotal_product(order.getTotal_product());
+        // verificamos que exista el producto en el carrito
+        if (!orderRepository.existsById(new ShoppingCartOrderKey(buyerId, productId)))
+            throw new IllegalArgumentException("Item de la orden con buyerId " + buyerId + " y productId " + productId + " no existe.");
 
-        ShoppingCartOrderDao saved = orderRepository.save(existingDao);
-        return toModel(saved);
+        //seteamos verdadero total del producto, para evitar ediciones en front
+        orderDto.setTotal_product(orderDto.getUnits() * productService.getProductById(productId).getPrice());
+
+        //seteamos los Ids del endpoint para evitar mal formaciones en el json
+        orderDto.setProductId(productId);
+        orderDto.setBuyerId(buyerId);
+
+        return itemOrderMapper.toModel(orderRepository.save(itemOrderMapper.toDao(itemOrderMapper.toModel(orderDto))));
     }
 
     public void deleteItemOrder(int buyerId, int productId) {
@@ -97,7 +98,7 @@ public class ShoppingCartOrderService {
 
     //Borrar el carrito de compras para ese comprador
     public void deleteOrderByBuyerId(int buyerId) {
-        buyerService.getBuyerById(buyerId);
+        buyerService.getBuyerById(buyerId); // verificamos que existe
         orderRepository.findAll().stream().filter(dao -> dao.getBuyerId() == buyerId).map(dao -> new ShoppingCartOrderKey(dao.getBuyerId(), dao.getProductId())).forEach(orderRepository::deleteById);
         /*for (ShoppingCartOrder itemOrder : buyerOrder) {
             ShoppingCartOrderKey key = new ShoppingCartOrderKey(itemOrder.getBuyerId(), itemOrder.getProductId());
@@ -106,38 +107,15 @@ public class ShoppingCartOrderService {
     }
 
     public ShoppingCartOrder partialUpdateItemOrder(int buyerId, int productId, Map<String, Object> updates) {
-        ShoppingCartOrderKey key = new ShoppingCartOrderKey(buyerId, productId);
-        ShoppingCartOrderDao existingDao = orderRepository.findById(key)
+
+        ShoppingCartOrderDao itemOrderDao = orderRepository.findById(new ShoppingCartOrderKey(buyerId, productId))
                 .orElseThrow(() -> new EntityNotFoundException("Item de la orden con buyerId: " + buyerId + " productID: " + productId + " no existe"));
 
         if (updates.containsKey("units")) {
-            existingDao.setUnits((Integer) updates.get("units"));
-        }
-        if (updates.containsKey("total_product")) {
-            existingDao.setTotal_product((Integer) updates.get("total_product"));
+            itemOrderDao.setUnits((Integer) updates.get("units"));
+            itemOrderDao.setTotal_product(itemOrderDao.getUnits() * productService.getProductById(productId).getPrice());
         }
 
-        ShoppingCartOrderDao saved = orderRepository.save(existingDao);
-        return toModel(saved);
-    }
-
-    // Conversiones DAO -> Model
-    private ShoppingCartOrder toModel(ShoppingCartOrderDao dao) {
-        ShoppingCartOrder model = new ShoppingCartOrder();
-        model.setBuyerId(dao.getBuyerId());
-        model.setProductId(dao.getProductId());
-        model.setUnits(dao.getUnits());
-        model.setTotal_product(dao.getTotal_product());
-        return model;
-    }
-
-    // Conversiones Model -> DAO
-    private ShoppingCartOrderDao toDao(ShoppingCartOrder model) {
-        ShoppingCartOrderDao dao = new ShoppingCartOrderDao();
-        dao.setBuyerId(model.getBuyerId());
-        dao.setProductId(model.getProductId());
-        dao.setUnits(model.getUnits());
-        dao.setTotal_product(model.getTotal_product());
-        return dao;
+        return itemOrderMapper.toModel(orderRepository.save(itemOrderDao));
     }
 }
