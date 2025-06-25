@@ -1,145 +1,65 @@
 package com.example.service;
 
+import com.example.dao.CreditCardDao;
+import com.example.dto.CreditCardDto;
+import com.example.exception.BadRequestException;
 import com.example.exception.EntityNotFoundException;
 import com.example.model.CreditCard;
 import com.example.repository.CreditCardRepository;
-import com.example.dao.CreditCardDao;
+import com.example.utility.CreditCardMapper;
+import com.example.utility.DeletionValidator;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class CreditCardService {
-
     private final CreditCardRepository creditCardRepository;
+    private final CreditCardMapper creditCardMapper;
+    private final DeletionValidator validator;
 
-    public CreditCardService(CreditCardRepository creditCardRepository) {
+    public CreditCardService(CreditCardRepository creditCardRepository, CreditCardMapper creditCardMapper, DeletionValidator validator) {
         this.creditCardRepository = creditCardRepository;
+        this.creditCardMapper = creditCardMapper;
+        this.validator = validator;
     }
 
     public List<CreditCard> getAllCreditCards() {
-        List<CreditCardDao> creditCardDaos = creditCardRepository.findAll();
-        List<CreditCard> creditCards = new ArrayList<>();
-
-        for (CreditCardDao creditCardDao : creditCardDaos) {
-            creditCards.add(new CreditCard(
-                    creditCardDao.getId(),
-                    creditCardDao.getBuyerId(),
-                    creditCardDao.getName(),
-                    creditCardDao.getCardNumber(),
-                    creditCardDao.getCardDate(),
-                    creditCardDao.getCvcCode(),
-                    creditCardDao.getTokenizedCode(),
-                    creditCardDao.getBank()
-            ));
-        }
-
-        return creditCards;
+        List<CreditCardDao> creditCardListDao = creditCardRepository.findAll();
+        return creditCardListDao.stream().map(creditCardMapper::toModel).collect(Collectors.toList());
     }
 
     public CreditCard getCreditCardById(Integer id) {
-
-        CreditCardDao creditCardDao = creditCardRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Tarjeta de crédito con ID " + id + " no encontrada"));
-
-        return new CreditCard(
-                creditCardDao.getId(),
-                creditCardDao.getBuyerId(),
-                creditCardDao.getName(),
-                creditCardDao.getCardNumber(),
-                creditCardDao.getCardDate(),
-                creditCardDao.getCvcCode(),
-                creditCardDao.getTokenizedCode(),
-                creditCardDao.getBank()
-        );
+        Optional<CreditCardDao> optionalCreditCard = creditCardRepository.findById(id);
+        CreditCardDao creditCardDao = optionalCreditCard.orElseThrow(() -> new EntityNotFoundException("Tarjeta con ID: " + id + ", no encontrada"));
+        return creditCardMapper.toModel(creditCardDao);
     }
 
-    public CreditCard createCreditCard(CreditCard creditCard) {
-
-        CreditCardDao creditCardDao = new CreditCardDao();
-
-        creditCardDao.setBuyerId(creditCard.getBuyerId());
-        creditCardDao.setName(creditCard.getName());
-        creditCardDao.setCardNumber(creditCard.getCardNumber());
-        creditCardDao.setCardDate(creditCard.getCardDate());
-        creditCardDao.setCvcCode(creditCard.getCvcCode());
-        creditCardDao.setTokenizedCode(creditCard.getTokenizedCode());
-        creditCardDao.setBank(creditCard.getBank());
-
-        CreditCardDao creditCardCreated = creditCardRepository.save(creditCardDao);
-
-        return new CreditCard(
-                creditCardCreated.getId(),
-                creditCardCreated.getBuyerId(),
-                creditCardCreated.getName(),
-                creditCardDao.getCardNumber(),
-                creditCardCreated.getCardDate(),
-                creditCardCreated.getCvcCode(),
-                creditCardCreated.getTokenizedCode(),
-                creditCardCreated.getBank()
-        );
-    }
-
-    public CreditCard updateCreditCard(Integer id, CreditCard creditCard) {
-        CreditCardDao creditCardDao = creditCardRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Tarjeta de crédito con ID " + id + " no encontrada"));
-
-        creditCardDao.setBuyerId(creditCard.getBuyerId());
-        creditCardDao.setName(creditCard.getName());
-        creditCardDao.setCardNumber(creditCard.getCardNumber());
-        creditCardDao.setCardDate(creditCard.getCardDate());
-        creditCardDao.setCvcCode(creditCard.getCvcCode());
-        creditCardDao.setTokenizedCode(creditCard.getTokenizedCode());
-        creditCardDao.setBank(creditCard.getBank());
-
-        creditCardRepository.save(creditCardDao);
-
-        return new CreditCard(
-                creditCardDao.getId(),
-                creditCardDao.getBuyerId(),
-                creditCardDao.getName(),
-                creditCardDao.getCardNumber(),
-                creditCardDao.getCardDate(),
-                creditCardDao.getCvcCode(),
-                creditCardDao.getTokenizedCode(),
-                creditCardDao.getBank()
-        );
+    public CreditCard createCreditCard(CreditCardDto creditCardDto) {
+        return creditCardMapper.toModel(creditCardRepository.save(creditCardMapper.toDao(creditCardMapper.toModel(creditCardDto))));
     }
 
     public void deleteCreditCard(Integer id) {
-        if (creditCardRepository.findById(id).isEmpty()) {
-            throw new EntityNotFoundException("Tarjeta de crédito con ID " + id + " no encontrada");
-        }
+        if (!creditCardRepository.existsById(id))
+            throw new EntityNotFoundException("Tarjeta con ID: " + id + ", no encontrada");
+        //validator.deletionValidatorCreditCard(id);
         creditCardRepository.deleteById(id);
     }
 
+    public CreditCard updateCreditCard(Integer id, CreditCardDto updatedCreditCardDto) {
+        creditCardRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Tarjeta con ID: " + id + ", no encontrada"));
+        if (!Objects.equals(updatedCreditCardDto.getId(), id))
+            throw new BadRequestException("El ID ingresado en el JSON no coincide con el ID de actualización: " + id);
+        return creditCardMapper.toModel(creditCardRepository.save(creditCardMapper.toDao(creditCardMapper.toModel(updatedCreditCardDto))));
+    }
+
     public CreditCard partialUpdateCreditCard(Integer id, Map<String, Object> updates) {
-        CreditCardDao creditCardDao = creditCardRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Tarjeta de crédito con ID " + id + " no encontrada"));
-
-        updates.forEach((key, value) -> {
-            switch (key) {
-                case "buyerId" -> creditCardDao.setBuyerId((Integer) value);
-                case "name" -> creditCardDao.setName((String) value);
-                case "cardNumber" -> creditCardDao.setCardNumber((String) value);
-                case "cardDate" -> creditCardDao.setCardDate((String) value);
-                case "cvcCode" -> creditCardDao.setCvcCode((Integer) value);
-                case "tokenizedCode" -> creditCardDao.setTokenizedCode((String) value);
-                case "bank" -> creditCardDao.setBank((String) value);
-                default -> throw new IllegalArgumentException("Campo " + key + " no válido para actualización parcial.");
-            }
-        });
-
-        creditCardRepository.save(creditCardDao);
-
-        return new CreditCard(
-                creditCardDao.getId(),
-                creditCardDao.getBuyerId(),
-                creditCardDao.getName(),
-                creditCardDao.getCardNumber(),
-                creditCardDao.getCardDate(),
-                creditCardDao.getCvcCode(),
-                creditCardDao.getTokenizedCode(),
-                creditCardDao.getBank()
-        );
+        Optional<CreditCardDao> optionalCreditCard = creditCardRepository.findById(id);
+        CreditCardDao creditCardDaoOrigin = optionalCreditCard.orElseThrow(() -> new EntityNotFoundException("Tarjeta con ID: " + id + ", no encontrada"));
+        return creditCardMapper.toModel(creditCardRepository.save(creditCardMapper.parcialUpdateToDao(creditCardDaoOrigin, updates)));
     }
 }

@@ -1,10 +1,14 @@
 package com.example.model;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Setter
 @Getter
+@AllArgsConstructor
+@NoArgsConstructor
 public class Buyer {
 
     private int id;
@@ -15,16 +19,4 @@ public class Buyer {
     private String email;
     private String passAccount;
 
-    public Buyer() {
-    }
-
-    public Buyer(int id, String name, String surname, String birthDate, String cc, String email, String passAccount) {
-        this.id = id;
-        this.name = name;
-        this.surname = surname;
-        this.birthDate = birthDate;
-        this.cc = cc;
-        this.email = email;
-        this.passAccount = passAccount;
-    }
 }

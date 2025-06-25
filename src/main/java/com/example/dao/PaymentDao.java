@@ -1,10 +1,6 @@
 package com.example.dao;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -18,28 +14,23 @@ public class PaymentDao {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    @NotNull(message = "El ID del comprador es necesario")
+    @Column(name = "buyer_id")
     private int buyerId;
 
-    @NotNull(message = "El ID del método de pago es necesario")
+    @Column(name = "payment_method_id")
     private int paymentMethodId;
 
-    @NotNull(message = "El total del pedido no puede estar vacío")
-    @Min(value = 0, message = "El total del pedido debe ser mayor o igual a 0")
+    @Column(name = "total_order")
     private int totalOrder;
 
     @Column(length = 10, nullable = false)
-    @NotBlank(message = "La fecha de pago es obligatoria")
     private String date;
 
-    @NotNull(message = "El estado de confirmación es obligatorio")
-    @Min(value = 0, message = "El estado de confirmación debe ser 0, 1 o 2")
-    @Max(value = 2, message = "El estado de confirmación debe ser 0, 1 o 2")
     private int confirmation;
 
     private Integer codeConfirmation;
 
-    @Column(length = 20)
+    @Column(name = "card_number", length = 20)
     private String cardNumber;
 
     @Column(nullable = false)

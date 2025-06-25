@@ -1,7 +1,6 @@
 package com.example.dao;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -16,7 +15,6 @@ public class PaymentMethodDao {
     private int id;
 
     @Column(length = 20, nullable = false)
-    @NotBlank(message = "El nombre de método de pago es necesario")
     private String name;
 
     private String description;

@@ -1,13 +1,14 @@
 package com.example.service;
 
 import com.example.dao.OrderProcessedDao;
+import com.example.dto.OrderProcessedDto;
+import com.example.exception.EntityNotFoundException;
 import com.example.key.OrderProcessedKey;
 import com.example.model.OrderProcessed;
 import com.example.repository.OrderProcessedRepository;
-import com.example.exception.EntityNotFoundException;
+import com.example.utility.OrderProcessedMapper;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -15,114 +16,94 @@ import java.util.stream.Collectors;
 @Service
 public class OrderProcessedService {
 
-    private final OrderProcessedRepository repository;
+    private final OrderProcessedRepository orderProcessedRepository;
+    private final ProductService productService;
+    private final PaymentService paymentService;
+    private final OrderProcessedMapper orderProcessedMapper;
 
-    public OrderProcessedService(OrderProcessedRepository repository) {
-        this.repository = repository;
+    public OrderProcessedService(OrderProcessedRepository orderProcessedRepository, ProductService productService, PaymentService paymentService, OrderProcessedMapper orderProcessedMapper) {
+        this.orderProcessedRepository = orderProcessedRepository;
+        this.productService = productService;
+        this.paymentService = paymentService;
+        this.orderProcessedMapper = orderProcessedMapper;
     }
 
-    public List<OrderProcessed> getAllOrderProcessed() {
-        List<OrderProcessedDao> daoList = repository.findAll();
-        return daoList.stream().map(this::toModel).collect(Collectors.toList());
+    public List<OrderProcessed> getAllOrdersProcessed() {
+        List<OrderProcessedDao> daoList = orderProcessedRepository.findAll();
+        return daoList.stream().map(orderProcessedMapper::toModel).collect(Collectors.toList());
     }
 
     public OrderProcessed getOrderProcessedById(int paymentId, int productId) {
-        OrderProcessedDao dao = repository.findById(new OrderProcessedKey(paymentId, productId))
+        OrderProcessedDao dao = orderProcessedRepository.findById(new OrderProcessedKey(paymentId, productId))
                 .orElseThrow(() -> new EntityNotFoundException("Orden procesada con paymentId: " + paymentId + " y productId: " + productId + " no existe"));
-        return toModel(dao);
+        return orderProcessedMapper.toModel(dao);
     }
 
-    public List<OrderProcessed> getOrderByPaymentId(int paymentId) {
-        List<OrderProcessedDao> daoList = repository.findAll();
+    public OrderProcessed createOrderProcessed(OrderProcessedDto dto) {
+        if (orderProcessedRepository.existsById(new OrderProcessedKey(dto.getPaymentId(), dto.getProductId())))
+            throw new IllegalArgumentException("La orden ya existe con paymentId: " + dto.getPaymentId() + " y productId: " + dto.getProductId());
 
-        List<OrderProcessed> ordersByPayment = new ArrayList<>();
-        for (OrderProcessedDao dao : daoList) {
-            if (dao.getPaymentId() == paymentId) ordersByPayment.add(toModel(dao));
-        }
-        if (ordersByPayment.isEmpty()) throw new EntityNotFoundException("No existen órdenes procesadas con paymentId: " + paymentId);
-        return ordersByPayment;
+        dto.setTotal_product(dto.getUnits() * productService.getProductById(dto.getProductId()).getPrice());
+
+        return orderProcessedMapper.toModel(orderProcessedRepository.save(orderProcessedMapper.toDao(orderProcessedMapper.toModel(dto))));
     }
 
-    public OrderProcessed createOrderProcessed(OrderProcessed orderProcessed) {
-        OrderProcessedKey key = new OrderProcessedKey(orderProcessed.getPaymentId(), orderProcessed.getProductId());
+    public List<OrderProcessed> getOrdersByPaymentId(int paymentId) {
+        paymentService.getPaymentById(paymentId);
+        List<OrderProcessed> orders = orderProcessedRepository.findAll().stream()
+                .filter(dao -> dao.getPaymentId() == paymentId)
+                .map(orderProcessedMapper::toModel)
+                .collect(Collectors.toList());
 
-        if (repository.existsById(key))
-            throw new IllegalArgumentException("La orden procesada con paymentId " + orderProcessed.getPaymentId() + " y productId " + orderProcessed.getProductId() + " ya existe.");
+        if (orders.isEmpty())
+            throw new EntityNotFoundException("No hay órdenes procesadas para el paymentId: " + paymentId);
 
-        OrderProcessedDao dao = toDao(orderProcessed);
-        OrderProcessedDao saved = repository.save(dao);
-        return toModel(saved);
+        return orders;
     }
 
-    public void createTotalOrderProcessed(List<OrderProcessed> ordersProcessed) {
-        if (ordersProcessed.isEmpty()) throw new IllegalArgumentException("La lista de órdenes procesadas está vacía.");
-
-        for (OrderProcessed orderProcessed : ordersProcessed) {
-            OrderProcessedDao dao = toDao(orderProcessed);
-            repository.save(dao);
-        }
+    public void createMultipleOrdersProcessed(List<OrderProcessedDto> dtos) {
+        if (dtos.isEmpty()) throw new IllegalArgumentException("La lista de órdenes está vacía.");
+        dtos.stream()
+                .map(dto -> orderProcessedMapper.toDao(orderProcessedMapper.toModel(dto)))
+                .forEach(orderProcessedRepository::save);
     }
 
-    public OrderProcessed updateOrderProcessed(int paymentId, int productId, OrderProcessed orderProcessed) {
-        OrderProcessedKey key = new OrderProcessedKey(paymentId, productId);
-        OrderProcessedDao existingDao = repository.findById(key)
-                .orElseThrow(() -> new EntityNotFoundException("Orden procesada con paymentId: " + paymentId + " y productId: " + productId + " no existe"));
+    public OrderProcessed updateOrderProcessed(int paymentId, int productId, OrderProcessedDto dto) {
+        if (!orderProcessedRepository.existsById(new OrderProcessedKey(paymentId, productId)))
+            throw new IllegalArgumentException("Orden con paymentId: " + paymentId + " y productId: " + productId + " no existe.");
 
-        existingDao.setUnits(orderProcessed.getUnits());
-        existingDao.setTotal_product(orderProcessed.getTotal_product());
+        dto.setTotal_product(dto.getUnits() * productService.getProductById(productId).getPrice());
+        dto.setPaymentId(paymentId);
+        dto.setProductId(productId);
 
-        OrderProcessedDao saved = repository.save(existingDao);
-        return toModel(saved);
+        return orderProcessedMapper.toModel(orderProcessedRepository.save(orderProcessedMapper.toDao(orderProcessedMapper.toModel(dto))));
     }
 
     public void deleteOrderProcessed(int paymentId, int productId) {
         OrderProcessedKey key = new OrderProcessedKey(paymentId, productId);
-        if (!repository.existsById(key)) {
+        if (!orderProcessedRepository.existsById(key)) {
             throw new EntityNotFoundException("Orden procesada con paymentId: " + paymentId + " y productId: " + productId + " no existe");
         }
-        repository.deleteById(key);
+        orderProcessedRepository.deleteById(key);
     }
 
     public void deleteOrdersByPaymentId(int paymentId) {
-        List<OrderProcessed> ordersByPayment = getOrderByPaymentId(paymentId);
-        for (OrderProcessed orderProcessed : ordersByPayment) {
-            OrderProcessedKey key = new OrderProcessedKey(orderProcessed.getPaymentId(), orderProcessed.getProductId());
-            repository.deleteById(key);
-        }
+        paymentService.getPaymentById(paymentId);
+        orderProcessedRepository.findAll().stream()
+                .filter(dao -> dao.getPaymentId() == paymentId)
+                .map(dao -> new OrderProcessedKey(dao.getPaymentId(), dao.getProductId()))
+                .forEach(orderProcessedRepository::deleteById);
     }
 
     public OrderProcessed partialUpdateOrderProcessed(int paymentId, int productId, Map<String, Object> updates) {
-        OrderProcessedKey key = new OrderProcessedKey(paymentId, productId);
-        OrderProcessedDao existingDao = repository.findById(key)
+        OrderProcessedDao dao = orderProcessedRepository.findById(new OrderProcessedKey(paymentId, productId))
                 .orElseThrow(() -> new EntityNotFoundException("Orden procesada con paymentId: " + paymentId + " y productId: " + productId + " no existe"));
 
         if (updates.containsKey("units")) {
-            existingDao.setUnits((Integer) updates.get("units"));
-        }
-        if (updates.containsKey("total_product")) {
-            existingDao.setTotal_product((Integer) updates.get("total_product"));
+            dao.setUnits((Integer) updates.get("units"));
+            dao.setTotal_product(dao.getUnits() * productService.getProductById(productId).getPrice());
         }
 
-        OrderProcessedDao saved = repository.save(existingDao);
-        return toModel(saved);
-    }
-
-    // Conversion DAO <-> Model
-    private OrderProcessed toModel(OrderProcessedDao dao) {
-        OrderProcessed model = new OrderProcessed();
-        model.setPaymentId(dao.getPaymentId());
-        model.setProductId(dao.getProductId());
-        model.setUnits(dao.getUnits());
-        model.setTotal_product(dao.getTotal_product());
-        return model;
-    }
-
-    private OrderProcessedDao toDao(OrderProcessed model) {
-        OrderProcessedDao dao = new OrderProcessedDao();
-        dao.setPaymentId(model.getPaymentId());
-        dao.setProductId(model.getProductId());
-        dao.setUnits(model.getUnits());
-        dao.setTotal_product(model.getTotal_product());
-        return dao;
+        return orderProcessedMapper.toModel(orderProcessedRepository.save(dao));
     }
 }

@@ -1,7 +1,8 @@
-
 package com.example.dto;
 
 
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -9,11 +10,22 @@ import lombok.Setter;
 @Getter
 public class BuyerDto {
 
-    //private int id; MOSTRARLO¡
+    private int id;
+
+    @NotBlank(message = "El nombre es necesario")
     private String name;
+
+    @NotBlank(message = "El apellido es obligatorio")
     private String surname;
+
     private String birthDate;
-    //private String cc;
+
+    private String cc;
+
+    @NotBlank(message = "El correo electrónico es obligatorio")
+    @Email(message = "El correo electrónico debe ser válido")
     private String email;
-    //private String passAccount;
+
+    @NotBlank(message = "La contraseña es obligatoria")
+    private String passAccount;
 }

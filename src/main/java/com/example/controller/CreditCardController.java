@@ -3,78 +3,52 @@ package com.example.controller;
 import com.example.dto.CreditCardDto;
 import com.example.model.CreditCard;
 import com.example.service.CreditCardService;
+import com.example.utility.CreditCardMapper;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/credit-cards")
 public class CreditCardController {
 
     private final CreditCardService creditCardService;
+    private final CreditCardMapper creditCardMapper;
 
-    public CreditCardController(CreditCardService creditCardService) {
+    public CreditCardController(CreditCardService creditCardService, CreditCardMapper creditCardMapper) {
         this.creditCardService = creditCardService;
+        this.creditCardMapper = creditCardMapper;
     }
 
     @GetMapping
     public ResponseEntity<List<CreditCardDto>> getAllCreditCards() {
-        List<CreditCard> cards = creditCardService.getAllCreditCards();
-        List<CreditCardDto> cardDtos = new ArrayList<>();
-
-        for (CreditCard card : cards) {
-            CreditCardDto dto = new CreditCardDto();
-            dto.setName(card.getName());
-            dto.setBank(card.getBank());
-            cardDtos.add(dto);
-        }
-
-        return new ResponseEntity<>(cardDtos, HttpStatus.OK);
+        return new ResponseEntity<>(
+                creditCardService.getAllCreditCards().stream()
+                        .map(creditCardMapper::toPublicDto)
+                        .collect(Collectors.toList()),
+                HttpStatus.OK);
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<CreditCardDto> getCreditCardById(@PathVariable Integer id) {
-        CreditCard card = creditCardService.getCreditCardById(id);
-        CreditCardDto dto = new CreditCardDto();
-        dto.setName(card.getName());
-        dto.setBank(card.getBank());
-
-        return new ResponseEntity<>(dto, HttpStatus.OK);
+        return new ResponseEntity<>(
+                creditCardMapper.toPublicDto(creditCardService.getCreditCardById(id)),
+                HttpStatus.OK);
     }
 
     @PostMapping
-    public ResponseEntity<Map<String, String>> createCreditCard(@Valid @RequestBody CreditCard card) {
-        CreditCard created = creditCardService.createCreditCard(card);
+    public ResponseEntity<Map<String, String>> createCreditCard(@Valid @RequestBody CreditCardDto creditCardDto) {
+        CreditCard created = creditCardService.createCreditCard(creditCardDto);
 
         Map<String, String> response = new HashMap<>();
-        response.put("message", "Tarjeta de crédito de: " + created.getName() + " creada exitosamente");
-
+        response.put("message", "Tarjeta: " + created.getName() + " con ID: " + created.getId() + ", creada exitosamente");
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
-    }
-
-    @PutMapping("/{id}")
-    public ResponseEntity<Map<String, String>> updateCreditCard(@PathVariable Integer id,
-                                                                @Valid @RequestBody CreditCard card) {
-        CreditCard updated = creditCardService.updateCreditCard(id, card);
-
-        Map<String, String> response = new HashMap<>();
-        response.put("message", "Tarjeta de crédito de: " + updated.getName() + " actualizada exitosamente");
-
-        return ResponseEntity.ok(response);
-    }
-
-    @PatchMapping("/{id}")
-    public ResponseEntity<Map<String, String>> partialUpdateCreditCard(@PathVariable Integer id,
-                                                                       @RequestBody Map<String, Object> updates) {
-        CreditCard updated = creditCardService.partialUpdateCreditCard(id, updates);
-
-        Map<String, String> response = new HashMap<>();
-        response.put("message", "Tarjeta de crédito de: " + updated.getName() + " campo/s actualizado/s exitosamente");
-
-        return ResponseEntity.ok(response);
     }
 
     @DeleteMapping("/{id}")
@@ -83,8 +57,25 @@ public class CreditCardController {
         creditCardService.deleteCreditCard(id);
 
         Map<String, String> response = new HashMap<>();
-        response.put("message", "Tarjeta de crédito de: " + name + " eliminada exitosamente");
+        response.put("message", "Tarjeta: " + name + " de ID: " + id + ", fue eliminada exitosamente");
+        return ResponseEntity.ok(response);
+    }
 
+    @PutMapping("/{id}")
+    public ResponseEntity<Map<String, String>> updateCreditCard(@PathVariable Integer id, @Valid @RequestBody CreditCardDto creditCardDto) {
+        CreditCard updated = creditCardService.updateCreditCard(id, creditCardDto);
+
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "Tarjeta: " + updated.getName() + " de ID: " + id + ", actualizada exitosamente");
+        return ResponseEntity.ok(response);
+    }
+
+    @PatchMapping("/{id}")
+    public ResponseEntity<Map<String, String>> partialUpdateCreditCard(@PathVariable Integer id, @RequestBody Map<String, Object> updates) {
+        CreditCard updated = creditCardService.partialUpdateCreditCard(id, updates);
+
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "Tarjeta: " + updated.getName() + ", campo/s actualizado/s exitosamente");
         return ResponseEntity.ok(response);
     }
 }

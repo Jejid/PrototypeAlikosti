@@ -66,7 +66,7 @@ public class GlobalExceptionHandler {
 
         // Meter aquí en ifs las otras llaves que se pueden romper al crear o actualizar
 
-           // de payment
+        // de payment
         if (message.contains("payment_payment_method_id_fkey")) {
             response.put("error", "el ID de metodo de pago especificado no existe.");
         } else if (message.contains("fk_payment_buyer")) {
@@ -149,7 +149,7 @@ public class GlobalExceptionHandler {
 
         // Verificar si el mensaje contiene el error del trigger
         if (message.contains("Error: Pago No confirmado")) {
-            response.put("error", "No puedes solicitar reembolso porque el pago aún no se ha confirmado.");
+            response.put("error", "No puedes solicitar reembolso porque el pago aún no se ha confirmado o no existe dicho pago.");
         } else if (message.contains("Error: Pago rechazado")) {
             response.put("error", "No puedes solicitar reembolso porque el pago fue rechazado.");
         } else {
@@ -167,6 +167,14 @@ public class GlobalExceptionHandler {
         error.put("error", "Ruta no encontrada");
         error.put("message", "La URL '" + ex.getRequestURL() + "' no existe o está mal escrita. Verifica si escribiste mal el endpoint.");
         return error;
+    }
+
+    //Excepción para manejar relaciones con otra entidad en especial en el tema de deletion
+    @ExceptionHandler(RelatedEntityException.class)
+    public ResponseEntity<Map<String, String>> handleRelatedEntityException(RelatedEntityException ex) {
+        Map<String, String> response = new HashMap<>();
+        response.put("error", ex.getMessage());
+        return new ResponseEntity<>(response, HttpStatus.CONFLICT); // 409
     }
 
 }
