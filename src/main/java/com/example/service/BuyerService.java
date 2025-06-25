@@ -4,6 +4,8 @@ import com.example.dao.BuyerDao;
 import com.example.dto.BuyerDto;
 import com.example.exception.BadRequestException;
 import com.example.exception.EntityNotFoundException;
+import com.example.exception.InvalidCredentialsException;
+import com.example.exception.UserNotFoundException;
 import com.example.model.Buyer;
 import com.example.repository.BuyerRepository;
 import com.example.utility.BuyerMapper;
@@ -37,6 +39,19 @@ public class BuyerService {
         Optional<BuyerDao> optionalBuyer = buyerRepository.findById(id);
         BuyerDao buyerDao = optionalBuyer.orElseThrow(() -> new EntityNotFoundException("Comprador con ID: " + id + ", no encontrado"));
         return buyerMapper.toModel(buyerDao);
+    }
+
+    public String getLoginAccess(String email, String pass) {
+            
+        Optional<BuyerDao> optionBuyerDao = buyerRepository.findByEmail(email);
+        BuyerDao buyerDao = optionBuyerDao.orElseThrow(() -> new UserNotFoundException("El email no existe"));
+
+        System.out.println("Email: " + email);
+        System.out.println("Password input: " + pass);
+        System.out.println("Password in DB: " + buyerDao.getPassAccount());
+        if (buyerDao.getPassAccount().equals(pass)) return "Acceso Aprobado";
+        else throw new InvalidCredentialsException("Contraseña Incorrecta");
+
     }
 
     public Buyer createBuyer(BuyerDto buyerDto) {
