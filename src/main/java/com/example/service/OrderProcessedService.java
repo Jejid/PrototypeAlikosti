@@ -24,9 +24,16 @@ public class OrderProcessedService {
     private final PaymentRepository paymentRepository;
 
 
+    public Integer getTotalSalesByBuyerId(int id) {
+        Integer totalSale = orderProcessedRepository.sumTotalProductsByBuyerId(id);
+        if (totalSale == null || totalSale <= 0)
+            throw new UserNotFoundException("El comprador de id: " + id + " no tiene compras registradas");
+        return totalSale;
+    }
+
     public List<OrderProcessed> getSalesByBuyerId(int id) {
         if (orderProcessedRepository.findAllByBuyerId(id).isEmpty())
-            throw new UserNotFoundException("Es comprador de id: " + id + " no tiene compras registradas");
+            throw new UserNotFoundException("El comprador de id: " + id + " no tiene compras registradas");
         return orderProcessedRepository.findAllByBuyerId(id).stream().map(orderProcessedMapper::toModel).toList();
     }
 

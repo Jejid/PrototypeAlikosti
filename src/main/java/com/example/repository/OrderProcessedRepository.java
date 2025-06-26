@@ -25,6 +25,18 @@ public interface OrderProcessedRepository extends JpaRepository<OrderProcessedDa
             """, nativeQuery = true)
     List<OrderProcessedDao> findAllByBuyerId(@Param("buyerId") int buyerId);
 
+
     @Query("SELECT SUM(s.totalProduct) FROM OrderProcessedDao s WHERE s.paymentId = :paymentId")
     Integer sumTotalProductsByPaymentId(@Param("paymentId") Integer paymentId);
+
+    @Query("""
+            SELECT SUM(o.totalProduct)
+            FROM OrderProcessedDao o
+            WHERE o.paymentId IN (
+                SELECT p.id
+                FROM PaymentDao p
+                WHERE p.buyerId = :buyerId
+            )
+            """)
+    Integer sumTotalProductsByBuyerId(@Param("buyerId") int buyerId);
 }

@@ -44,6 +44,13 @@ public class PaymentService {
         this.shoppingCartOrderService = shoppingCartOrderService1;
     }
 
+    public List<Payment> getPaymentByBuyerId(Integer id) {
+        List<PaymentDao> listPayment = paymentRepository.findPaymentsByBuyerId(id);
+        if (listPayment.isEmpty())
+            throw new EntityNotFoundException("Pagos con ID de comprador: " + id + ", no encontrados");
+        return listPayment.stream().map(paymentMapper::toModel).toList();
+    }
+
 
     public Payment createPayment(PaymentDto paymentDto) {
         // 1. Verificar que el comprador y  orden existan

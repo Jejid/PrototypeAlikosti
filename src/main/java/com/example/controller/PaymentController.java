@@ -26,6 +26,17 @@ public class PaymentController {
         this.paymentMapper = paymentMapper;
     }
 
+
+    @GetMapping("/buyer/{id}")
+    public ResponseEntity<List<PaymentDto>> getPaymentsByBuyerId(@PathVariable Integer id) {
+        return new ResponseEntity<>(
+                paymentService.getPaymentByBuyerId(id).stream()
+                        .map(paymentMapper::toPublicDto).collect(Collectors.toList()),
+                HttpStatus.OK);
+    }
+
+
+    //----- Métodos básicos-------
     @GetMapping
     public ResponseEntity<List<PaymentDto>> getAllPayments() {
         return new ResponseEntity<>(
