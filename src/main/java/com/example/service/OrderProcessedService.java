@@ -3,6 +3,7 @@ package com.example.service;
 import com.example.dao.OrderProcessedDao;
 import com.example.dto.OrderProcessedDto;
 import com.example.exception.EntityNotFoundException;
+import com.example.exception.UserNotFoundException;
 import com.example.key.OrderProcessedKey;
 import com.example.mapper.OrderProcessedMapper;
 import com.example.model.OrderProcessed;
@@ -22,6 +23,12 @@ public class OrderProcessedService {
     private final OrderProcessedMapper orderProcessedMapper;
     private final PaymentRepository paymentRepository;
 
+
+    public List<OrderProcessed> getSalesByBuyerId(int id) {
+        if (orderProcessedRepository.findAllByBuyerId(id).isEmpty())
+            throw new UserNotFoundException("Es comprador de id: " + id + " no tiene compras registradas");
+        return orderProcessedRepository.findAllByBuyerId(id).stream().map(orderProcessedMapper::toModel).toList();
+    }
 
     //---- Metodos Basicos ----
     public OrderProcessedService(OrderProcessedRepository orderProcessedRepository, ProductService productService, OrderProcessedMapper orderProcessedMapper, PaymentRepository paymentRepository) {

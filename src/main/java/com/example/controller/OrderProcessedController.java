@@ -26,6 +26,15 @@ public class OrderProcessedController {
         this.orderProcessedMapper = orderProcessedMapper;
     }
 
+    @GetMapping("/{buyerId}")
+    public ResponseEntity<List<OrderProcessedDto>> getSalesByBuyerId(@PathVariable int buyerId) {
+        return new ResponseEntity<>(
+                orderProcessedService.getSalesByBuyerId(buyerId).stream()
+                        .map(orderProcessedMapper::toPublicDto).toList(),
+                HttpStatus.OK);
+    }
+
+    // ----- Métodos Básicos ----
     @GetMapping
     public ResponseEntity<List<OrderProcessedDto>> getAllOrdersProcessed() {
         return new ResponseEntity<>(
