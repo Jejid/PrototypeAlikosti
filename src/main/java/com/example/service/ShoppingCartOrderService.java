@@ -46,18 +46,13 @@ public class ShoppingCartOrderService {
             throw new IllegalArgumentException("El item con buyerId " + orderDto.getBuyerId() + " y productId " + orderDto.getProductId() + " ya existe.");
 
         //seteamos verdadero total del producto, para evitar ediciones en front
-        orderDto.setTotal_product(orderDto.getUnits() * productService.getProductById(orderDto.getProductId()).getPrice());
+        orderDto.setTotalProduct(orderDto.getUnits() * productService.getProductById(orderDto.getProductId()).getPrice());
 
         //convertimos, guardamos y regresamos el objeto itemOrder
         return itemOrderMapper.toModel(orderRepository.save(itemOrderMapper.toDao(itemOrderMapper.toModel(orderDto))));
     }
 
     public List<ShoppingCartOrder> getOrderByBuyerId(int buyerId) {
-        /*List<ShoppingCartOrderDao> daoList = orderRepository.findAll();
-        List<ShoppingCartOrder> userOrder = new ArrayList<>();
-        for (ShoppingCartOrderDao dao : daoList) {
-            if (dao.getBuyerId() == buyerId) userOrder.add(toModel(dao));
-        }*/
 
         buyerService.getBuyerById(buyerId);
         List<ShoppingCartOrder> userOrder = orderRepository.findAll().stream().filter(dao -> dao.getBuyerId() == buyerId).map(itemOrderMapper::toModel).collect(Collectors.toList());
@@ -79,7 +74,7 @@ public class ShoppingCartOrderService {
             throw new IllegalArgumentException("Item de la orden con buyerId " + buyerId + " y productId " + productId + " no existe.");
 
         //seteamos verdadero total del producto, para evitar ediciones en front
-        orderDto.setTotal_product(orderDto.getUnits() * productService.getProductById(productId).getPrice());
+        orderDto.setTotalProduct(orderDto.getUnits() * productService.getProductById(productId).getPrice());
 
         //seteamos los Ids del endpoint para evitar mal formaciones en el json
         orderDto.setProductId(productId);
@@ -100,10 +95,6 @@ public class ShoppingCartOrderService {
     public void deleteOrderByBuyerId(int buyerId) {
         buyerService.getBuyerById(buyerId); // verificamos que existe
         orderRepository.findAll().stream().filter(dao -> dao.getBuyerId() == buyerId).map(dao -> new ShoppingCartOrderKey(dao.getBuyerId(), dao.getProductId())).forEach(orderRepository::deleteById);
-        /*for (ShoppingCartOrder itemOrder : buyerOrder) {
-            ShoppingCartOrderKey key = new ShoppingCartOrderKey(itemOrder.getBuyerId(), itemOrder.getProductId());
-            repository.deleteById(key);
-        }*/
     }
 
     public ShoppingCartOrder partialUpdateItemOrder(int buyerId, int productId, Map<String, Object> updates) {
@@ -113,7 +104,7 @@ public class ShoppingCartOrderService {
 
         if (updates.containsKey("units")) {
             itemOrderDao.setUnits((Integer) updates.get("units"));
-            itemOrderDao.setTotal_product(itemOrderDao.getUnits() * productService.getProductById(productId).getPrice());
+            itemOrderDao.setTotalProduct(itemOrderDao.getUnits() * productService.getProductById(productId).getPrice());
         }
 
         return itemOrderMapper.toModel(orderRepository.save(itemOrderDao));

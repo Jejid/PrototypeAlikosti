@@ -46,6 +46,7 @@ public class PaymentController {
     public ResponseEntity<Map<String, String>> createPayment(@Valid @RequestBody PaymentDto paymentDto) {
         Payment created = paymentService.createPayment(paymentDto);
 
+
         Map<String, String> response = new HashMap<>();
         response.put("message", "Pago con ID: " + created.getId() + ", creado exitosamente");
         return ResponseEntity.status(HttpStatus.CREATED).body(response);

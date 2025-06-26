@@ -66,7 +66,7 @@ public class BuyerMapper {
         dto.setBirthDate(buyer.getBirthDate());
         dto.setEmail(buyer.getEmail());
         dto.setCc("confidencial");
-        dto.setPassAccount("confidencial");
+        dto.setPassAccount("**********");
         return dto;
     }
 

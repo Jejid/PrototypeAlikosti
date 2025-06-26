@@ -19,7 +19,7 @@ public class OrderProcessedMapper {
         model.setPaymentId(dto.getPaymentId());
         model.setProductId(dto.getProductId());
         model.setUnits(dto.getUnits());
-        model.setTotal_product(dto.getTotal_product());
+        model.setTotalProduct(dto.getTotalProduct());
         return model;
     }
 
@@ -30,7 +30,7 @@ public class OrderProcessedMapper {
         dao.setPaymentId(model.getPaymentId());
         dao.setProductId(model.getProductId());
         dao.setUnits(model.getUnits());
-        dao.setTotal_product(model.getTotal_product());
+        dao.setTotalProduct(model.getTotalProduct());
         return dao;
     }
 
@@ -41,7 +41,7 @@ public class OrderProcessedMapper {
         model.setPaymentId(dao.getPaymentId());
         model.setProductId(dao.getProductId());
         model.setUnits(dao.getUnits());
-        model.setTotal_product(dao.getTotal_product());
+        model.setTotalProduct(dao.getTotalProduct());
         return model;
     }
 
@@ -52,7 +52,7 @@ public class OrderProcessedMapper {
         dto.setPaymentId(model.getPaymentId());
         dto.setProductId(model.getProductId());
         dto.setUnits(model.getUnits());
-        dto.setTotal_product(model.getTotal_product());
+        dto.setTotalProduct(model.getTotalProduct());
         return dto;
     }
 

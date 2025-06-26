@@ -24,5 +24,5 @@ public class ShoppingCartOrderDao {
     private int units;
 
     @Column(name = "total_product")
-    private int total_product;
+    private int totalProduct;
 }

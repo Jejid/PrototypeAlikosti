@@ -42,13 +42,10 @@ public class BuyerService {
     }
 
     public String getLoginAccess(String email, String pass) {
-            
+
         Optional<BuyerDao> optionBuyerDao = buyerRepository.findByEmail(email);
         BuyerDao buyerDao = optionBuyerDao.orElseThrow(() -> new UserNotFoundException("El email no existe"));
 
-        System.out.println("Email: " + email);
-        System.out.println("Password input: " + pass);
-        System.out.println("Password in DB: " + buyerDao.getPassAccount());
         if (buyerDao.getPassAccount().equals(pass)) return "Acceso Aprobado";
         else throw new InvalidCredentialsException("Contraseña Incorrecta");
 

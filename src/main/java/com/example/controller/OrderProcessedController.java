@@ -44,7 +44,7 @@ public class OrderProcessedController {
 
     @PostMapping
     public ResponseEntity<Map<String, String>> createOrderProcessed(@Valid @RequestBody OrderProcessedDto dto) {
-        OrderProcessed created = orderProcessedService.createOrderProcessed(dto);
+        OrderProcessed created = orderProcessedService.createItemOrderProcessed(dto);
 
         Map<String, String> response = new HashMap<>();
         response.put("message", "Orden procesada exitosamente para el pago con ID: " + created.getPaymentId());

@@ -5,7 +5,6 @@ import com.example.dto.CreditCardDto;
 import com.example.exception.BadRequestException;
 import com.example.exception.EntityNotFoundException;
 import com.example.model.CreditCard;
-import com.example.repository.CreditCardRepository;
 import com.example.utility.CreditCardMapper;
 import com.example.utility.DeletionValidator;
 import org.springframework.stereotype.Service;
@@ -18,11 +17,11 @@ import java.util.stream.Collectors;
 
 @Service
 public class CreditCardService {
-    private final CreditCardRepository creditCardRepository;
+    private final com.example.repository.CreditCardRepository creditCardRepository;
     private final CreditCardMapper creditCardMapper;
     private final DeletionValidator validator;
 
-    public CreditCardService(CreditCardRepository creditCardRepository, CreditCardMapper creditCardMapper, DeletionValidator validator) {
+    public CreditCardService(com.example.repository.CreditCardRepository creditCardRepository, CreditCardMapper creditCardMapper, DeletionValidator validator) {
         this.creditCardRepository = creditCardRepository;
         this.creditCardMapper = creditCardMapper;
         this.validator = validator;
