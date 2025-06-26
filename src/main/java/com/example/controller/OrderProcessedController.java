@@ -1,9 +1,9 @@
 package com.example.controller;
 
 import com.example.dto.OrderProcessedDto;
+import com.example.mapper.OrderProcessedMapper;
 import com.example.model.OrderProcessed;
 import com.example.service.OrderProcessedService;
-import com.example.utility.OrderProcessedMapper;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

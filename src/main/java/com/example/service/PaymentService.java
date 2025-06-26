@@ -5,13 +5,13 @@ import com.example.dto.OrderProcessedDto;
 import com.example.dto.PaymentDto;
 import com.example.exception.BadRequestException;
 import com.example.exception.EntityNotFoundException;
+import com.example.mapper.PaymentMapper;
 import com.example.model.Payment;
 import com.example.model.ShoppingCartOrder;
 import com.example.repository.CreditCardRepository;
 import com.example.repository.PaymentRepository;
 import com.example.repository.ShoppingCartOrderRepository;
 import com.example.utility.DeletionValidator;
-import com.example.utility.PaymentMapper;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -44,18 +44,6 @@ public class PaymentService {
         this.shoppingCartOrderService = shoppingCartOrderService1;
     }
 
-
-    // ------- Métodos Basicos-------//
-    public List<Payment> getAllPayments() {
-        List<PaymentDao> paymentListDao = paymentRepository.findAll();
-        return paymentListDao.stream().map(paymentMapper::toModel).collect(Collectors.toList());
-    }
-
-    public Payment getPaymentById(Integer id) {
-        Optional<PaymentDao> optionalPayment = paymentRepository.findById(id);
-        PaymentDao paymentDao = optionalPayment.orElseThrow(() -> new EntityNotFoundException("Pago con ID: " + id + ", no encontrado"));
-        return paymentMapper.toModel(paymentDao);
-    }
 
     public Payment createPayment(PaymentDto paymentDto) {
         // 1. Verificar que el comprador y  orden existan
@@ -108,6 +96,19 @@ public class PaymentService {
         shoppingCartOrderService.deleteOrderByBuyerId(paymentDto.getBuyerId());
 
         return savedPayment;
+    }
+
+
+    // ------- Métodos Basicos-------//
+    public List<Payment> getAllPayments() {
+        List<PaymentDao> paymentListDao = paymentRepository.findAll();
+        return paymentListDao.stream().map(paymentMapper::toModel).collect(Collectors.toList());
+    }
+
+    public Payment getPaymentById(Integer id) {
+        Optional<PaymentDao> optionalPayment = paymentRepository.findById(id);
+        PaymentDao paymentDao = optionalPayment.orElseThrow(() -> new EntityNotFoundException("Pago con ID: " + id + ", no encontrado"));
+        return paymentMapper.toModel(paymentDao);
     }
 
     public void deletePayment(Integer id) {

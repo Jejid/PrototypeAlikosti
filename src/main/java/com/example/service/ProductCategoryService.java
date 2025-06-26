@@ -4,10 +4,10 @@ import com.example.dao.ProductCategoryDao;
 import com.example.dto.ProductCategoryDto;
 import com.example.exception.BadRequestException;
 import com.example.exception.EntityNotFoundException;
+import com.example.mapper.ProductCategoryMapper;
 import com.example.model.ProductCategory;
 import com.example.repository.ProductCategoryRepository;
 import com.example.utility.DeletionValidator;
-import com.example.utility.ProductCategoryMapper;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

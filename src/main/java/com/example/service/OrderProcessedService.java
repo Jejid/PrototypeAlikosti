@@ -4,10 +4,10 @@ import com.example.dao.OrderProcessedDao;
 import com.example.dto.OrderProcessedDto;
 import com.example.exception.EntityNotFoundException;
 import com.example.key.OrderProcessedKey;
+import com.example.mapper.OrderProcessedMapper;
 import com.example.model.OrderProcessed;
 import com.example.repository.OrderProcessedRepository;
 import com.example.repository.PaymentRepository;
-import com.example.utility.OrderProcessedMapper;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -22,6 +22,8 @@ public class OrderProcessedService {
     private final OrderProcessedMapper orderProcessedMapper;
     private final PaymentRepository paymentRepository;
 
+
+    //---- Metodos Basicos ----
     public OrderProcessedService(OrderProcessedRepository orderProcessedRepository, ProductService productService, OrderProcessedMapper orderProcessedMapper, PaymentRepository paymentRepository) {
         this.orderProcessedRepository = orderProcessedRepository;
         this.productService = productService;

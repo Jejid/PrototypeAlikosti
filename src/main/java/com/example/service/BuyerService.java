@@ -6,9 +6,9 @@ import com.example.exception.BadRequestException;
 import com.example.exception.EntityNotFoundException;
 import com.example.exception.InvalidCredentialsException;
 import com.example.exception.UserNotFoundException;
+import com.example.mapper.BuyerMapper;
 import com.example.model.Buyer;
 import com.example.repository.BuyerRepository;
-import com.example.utility.BuyerMapper;
 import com.example.utility.DeletionValidator;
 import org.springframework.stereotype.Service;
 

@@ -4,9 +4,9 @@ import com.example.dao.ShoppingCartOrderDao;
 import com.example.dto.ShoppingCartOrderDto;
 import com.example.exception.EntityNotFoundException;
 import com.example.key.ShoppingCartOrderKey;
+import com.example.mapper.ShoppingCartOrderMapper;
 import com.example.model.ShoppingCartOrder;
 import com.example.repository.ShoppingCartOrderRepository;
-import com.example.utility.ShoppingCartOrderMapper;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

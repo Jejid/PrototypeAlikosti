@@ -4,8 +4,8 @@ import com.example.dao.CreditCardDao;
 import com.example.dto.CreditCardDto;
 import com.example.exception.BadRequestException;
 import com.example.exception.EntityNotFoundException;
+import com.example.mapper.CreditCardMapper;
 import com.example.model.CreditCard;
-import com.example.utility.CreditCardMapper;
 import com.example.utility.DeletionValidator;
 import org.springframework.stereotype.Service;
 

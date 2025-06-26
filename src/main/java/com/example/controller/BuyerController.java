@@ -1,9 +1,9 @@
 package com.example.controller;
 
 import com.example.dto.BuyerDto;
+import com.example.mapper.BuyerMapper;
 import com.example.model.Buyer;
 import com.example.service.BuyerService;
-import com.example.utility.BuyerMapper;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

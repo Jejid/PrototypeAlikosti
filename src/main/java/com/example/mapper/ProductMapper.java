@@ -1,4 +1,4 @@
-package com.example.utility;
+package com.example.mapper;
 
 import com.example.dao.ProductDao;
 import com.example.dto.ProductDto;
