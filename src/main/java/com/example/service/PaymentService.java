@@ -74,7 +74,7 @@ public class PaymentService {
         shoppingCartOrderList.forEach(shoppinCartOrder -> {
             Optional<ProductDao> productOptional = productRepository.findById(shoppinCartOrder.getProductId());
             ProductDao productDao = productOptional.orElseThrow(() -> new EntityNotFoundException("Producto no encontrado"));
-            System.out.println("queda en el stock: " + (productDao.getStock() - shoppinCartOrder.getUnits()));
+            //System.out.println("queda en el stock: " + (productDao.getStock() - shoppinCartOrder.getUnits()));
             if (productDao.getStock() - shoppinCartOrder.getUnits() < 0) {
                 throw new EntityNotFoundException("No se puede crear el pago porque se agotó el stock del producto: " + productDao.getId() + " por favor cambia o elimina el producto del carrito");
             } else productDao.setStock(productDao.getStock() - shoppinCartOrder.getUnits());
@@ -185,6 +185,9 @@ public class PaymentService {
         paymentRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Pago con ID: " + id + ", no encontrado"));
         if (!Objects.equals(updatedPaymentDto.getId(), id))
             throw new BadRequestException("El ID ingresado en el JSON no coincide con el ID de actualización: " + id);
+
+        //evitamos que cambien en el front la confirmación de pago
+        updatedPaymentDto.setConfirmation(0);
         return paymentMapper.toModel(paymentRepository.save(paymentMapper.toDao(paymentMapper.toModel(updatedPaymentDto))));
     }
 

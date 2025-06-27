@@ -75,7 +75,7 @@ public class RequestRefundMapper {
                         if (value instanceof Number) dao.setPaymentId(((Number) value).intValue());
                         break;
                     case "confirmation":
-                        if (value instanceof Number) dao.setConfirmation(((Number) value).intValue());
+                        if (value instanceof Number) dao.setConfirmation(0);
                         break;
                     case "refundType":
                     case "refund_type":

@@ -98,7 +98,7 @@ public class PaymentMapper {
                         if (value instanceof String) dao.setDate((String) value);
                         break;
                     case "confirmation":
-                        if (value instanceof Number) dao.setConfirmation(((Number) value).intValue());
+                        if (value instanceof Number) dao.setConfirmation(0);
                         break;
                     case "codeConfirmation":
                     case "code_confirmation":

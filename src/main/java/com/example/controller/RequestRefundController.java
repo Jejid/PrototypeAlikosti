@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.*;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/refunds")
@@ -26,13 +25,28 @@ public class RequestRefundController {
         this.requestRefundMapper = requestRefundMapper;
     }
 
+    @PatchMapping("/{id}/confirm")
+    public ResponseEntity<Map<String, String>> confirmPayment(@PathVariable Integer id, @RequestParam Integer state) {
+        String confirmation = requestRefundService.confirmRefundById(id, state);
+
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "El reembolso con id " + id + " fue: " + confirmation);
+        return ResponseEntity.ok(response);
+    }
+
     @GetMapping
-    public ResponseEntity<List<RequestRefundDto>> getAllRequestRefunds() {
-        return new ResponseEntity<>(
-                requestRefundService.getAllRequestRefunds().stream()
-                        .map(requestRefundMapper::toPublicDto)
-                        .collect(Collectors.toList()),
-                HttpStatus.OK);
+    public ResponseEntity<Map<String, Object>> getAllRequestRefunds() {
+        List<RequestRefundDto> requestRefundDtos = requestRefundService.getAllRequestRefunds().stream()
+                .map(requestRefundMapper::toPublicDto)
+                .toList();
+
+        String message = "Reembolsos de la base de datos: ";
+        if (requestRefundDtos.isEmpty()) message = "No hay Reembolsos en la tabla de la base de datos";
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("message", message);
+        response.put("data", requestRefundDtos);
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/{id}")
