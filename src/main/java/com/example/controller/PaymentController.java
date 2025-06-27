@@ -26,7 +26,6 @@ public class PaymentController {
         this.paymentMapper = paymentMapper;
     }
 
-
     @GetMapping("/buyer/{id}")
     public ResponseEntity<List<PaymentDto>> getPaymentsByBuyerId(@PathVariable Integer id) {
         return new ResponseEntity<>(
@@ -35,6 +34,14 @@ public class PaymentController {
                 HttpStatus.OK);
     }
 
+    @PatchMapping("/{id}/confirm")
+    public ResponseEntity<Map<String, String>> confirmPayment(@PathVariable Integer id, @RequestParam Integer state) {
+        String confirmation = paymentService.confirmPaymenteById(id, state);
+
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "El pago con id " + id + " fue: " + confirmation);
+        return ResponseEntity.ok(response);
+    }
 
     //----- Métodos básicos-------
     @GetMapping
@@ -72,15 +79,16 @@ public class PaymentController {
         return ResponseEntity.ok(response);
     }
 
-    @PutMapping("/{id}")
+    /*@PutMapping("/{id}")
     public ResponseEntity<Map<String, String>> updatePayment(@PathVariable Integer id, @Valid @RequestBody PaymentDto paymentDto) {
         Payment updated = paymentService.updatePayment(id, paymentDto);
 
         Map<String, String> response = new HashMap<>();
         response.put("message", "Pago con ID: " + id + ", actualizado exitosamente");
         return ResponseEntity.ok(response);
-    }
+    }*/
 
+    /*
     @PatchMapping("/{id}")
     public ResponseEntity<Map<String, String>> partialUpdatePayment(@PathVariable Integer id, @RequestBody Map<String, Object> updates) {
         Payment updated = paymentService.partialUpdatePayment(id, updates);
@@ -89,4 +97,5 @@ public class PaymentController {
         response.put("message", "Pago con ID: " + updated.getId() + ", campo/s actualizado/s exitosamente");
         return ResponseEntity.ok(response);
     }
+    */
 }

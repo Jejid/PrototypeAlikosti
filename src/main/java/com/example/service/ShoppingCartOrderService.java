@@ -5,6 +5,7 @@ import com.example.dto.ShoppingCartOrderDto;
 import com.example.exception.EntityNotFoundException;
 import com.example.key.ShoppingCartOrderKey;
 import com.example.mapper.ShoppingCartOrderMapper;
+import com.example.model.Product;
 import com.example.model.ShoppingCartOrder;
 import com.example.repository.ShoppingCartOrderRepository;
 import org.springframework.stereotype.Service;
@@ -41,9 +42,16 @@ public class ShoppingCartOrderService {
 
     public ShoppingCartOrder createItemOrder(ShoppingCartOrderDto orderDto) {
 
+        Product product = productService.getProductById(orderDto.getProductId());
+        //verificamos que haya stock del producto
+        if (product.getStock() == 0)
+            throw new IllegalArgumentException("Este producto no tiene unidades en el stock en el momento");
+        if (product.getStock() - orderDto.getUnits() < 0)
+            throw new IllegalArgumentException("Este producto no tiene las unidades disponibles suficientes, prueba bajando el número");
+
         // verificamos que no exista el producto ya en el carrito
         if (orderRepository.existsById(new ShoppingCartOrderKey(orderDto.getBuyerId(), orderDto.getProductId())))
-            throw new IllegalArgumentException("El item con buyerId " + orderDto.getBuyerId() + " y productId " + orderDto.getProductId() + " ya existe.");
+            throw new IllegalArgumentException("El item con buyerId " + orderDto.getBuyerId() + " y productId " + orderDto.getProductId() + " ya existe en el carrito");
 
         //seteamos verdadero total del producto, para evitar ediciones en front
         orderDto.setTotalProduct(orderDto.getUnits() * productService.getProductById(orderDto.getProductId()).getPrice());

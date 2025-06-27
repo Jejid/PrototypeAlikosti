@@ -69,7 +69,6 @@ public class OrderProcessedService {
         if (!paymentRepository.existsById(paymentId)) {
             throw new EntityNotFoundException("No existe un pago con ID " + paymentId);
         }
-        //paymentService.getPaymentById(paymentId);
         List<OrderProcessed> orders = orderProcessedRepository.findAll().stream()
                 .filter(dao -> dao.getPaymentId() == paymentId)
                 .map(orderProcessedMapper::toModel)
