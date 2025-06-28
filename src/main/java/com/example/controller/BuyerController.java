@@ -59,7 +59,7 @@ public class BuyerController {
         buyerService.deleteBuyer(id);
 
         Map<String, String> response = new HashMap<>();
-        response.put("message", "Comprador: " + nameBuyer + "de ID: " + id + ", fue eliminado exitosamente");
+        response.put("message", "Comprador: " + nameBuyer + " de ID: " + id + ", fue eliminado exitosamente");
         return ResponseEntity.ok(response);
     }
 

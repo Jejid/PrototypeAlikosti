@@ -1,6 +1,7 @@
 package com.example.controller;
 
 import com.example.dto.OrderProcessedDto;
+import com.example.dto.ReportSalesDto;
 import com.example.mapper.OrderProcessedMapper;
 import com.example.model.OrderProcessed;
 import com.example.service.OrderProcessedService;
@@ -29,6 +30,17 @@ public class OrderProcessedController {
     @GetMapping("totalsales/{buyerId}")
     public Integer getTotalSalesByBuyerId(@PathVariable int buyerId) {
         return orderProcessedService.getTotalSalesByBuyerId(buyerId);
+    }
+
+    @GetMapping("/liquid-sales")
+    public ResponseEntity<Map<String, Object>> getLiquidSales() {
+
+        List<ReportSalesDto> reportSalesDtos = orderProcessedService.getLuquidSales();
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("message", "El total líquido de ventas es: " + reportSalesDtos.stream().mapToInt(ReportSalesDto::getTotalSales).sum());
+        response.put("data", reportSalesDtos);
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/{buyerId}")

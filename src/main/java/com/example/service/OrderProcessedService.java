@@ -2,6 +2,7 @@ package com.example.service;
 
 import com.example.dao.OrderProcessedDao;
 import com.example.dto.OrderProcessedDto;
+import com.example.dto.ReportSalesDto;
 import com.example.exception.EntityNotFoundException;
 import com.example.exception.UserNotFoundException;
 import com.example.key.OrderProcessedKey;
@@ -16,6 +17,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
+//Puede verse como tabla Ventas
 public class OrderProcessedService {
 
     private final OrderProcessedRepository orderProcessedRepository;
@@ -35,6 +37,20 @@ public class OrderProcessedService {
         if (orderProcessedRepository.findAllByBuyerId(id).isEmpty())
             throw new UserNotFoundException("El comprador de id: " + id + " no tiene compras registradas");
         return orderProcessedRepository.findAllByBuyerId(id).stream().map(orderProcessedMapper::toModel).toList();
+    }
+
+    public List<ReportSalesDto> getLuquidSales() {
+
+        List<Object[]> rawResults = paymentRepository.findSalesReportList();
+        if (rawResults.isEmpty()) throw new EntityNotFoundException("No hay ventan liquidas registradas");
+
+        return rawResults.stream()
+                .map(row -> new ReportSalesDto(
+                        ((Number) row[0]).intValue(),         // buyerId
+                        (String) row[1],                      // nameBuyer
+                        ((Number) row[2]).intValue()          // totalSales
+                ))
+                .toList();
     }
 
     //---- Metodos Basicos ----

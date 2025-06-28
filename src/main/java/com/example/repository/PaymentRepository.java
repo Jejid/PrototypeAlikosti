@@ -22,4 +22,16 @@ public interface PaymentRepository extends JpaRepository<PaymentDao, Integer> {
             """, nativeQuery = true)
     List<PaymentDao> findPaymentsByBuyerId(@Param("buyerId") int buyerId);
 
+    @Query(value = """
+            SELECT
+                p.buyer_id AS buyerId,
+                b.name AS nameBuyer,
+                SUM(p.total_order) AS totalSales
+            FROM payment p
+            JOIN buyer b ON p.buyer_id = b.id
+            WHERE p.confirmation = 1 AND p.refunded = false
+            GROUP BY p.buyer_id, b.name
+            """, nativeQuery = true)
+    List<Object[]> findSalesReportList();
+
 }
