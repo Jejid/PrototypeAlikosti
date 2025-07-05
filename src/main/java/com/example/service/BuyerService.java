@@ -32,7 +32,10 @@ public class BuyerService {
 
     public List<Buyer> getAllBuyers() {
         List<BuyerDao> buyerListDao = buyerRepository.findAll();
-        return buyerListDao.stream().map(buyerMapper::toModel).collect(Collectors.toList());
+        return buyerListDao
+                .stream()
+                .map(buyerMapper::toModel)
+                .collect(Collectors.toList());
     }
 
     public Buyer getBuyerById(Integer id) {

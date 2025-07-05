@@ -63,7 +63,12 @@ public class ShoppingCartOrderService {
     public List<ShoppingCartOrder> getOrderByBuyerId(int buyerId) {
 
         buyerService.getBuyerById(buyerId);
-        List<ShoppingCartOrder> userOrder = orderRepository.findAll().stream().filter(dao -> dao.getBuyerId() == buyerId).map(itemOrderMapper::toModel).collect(Collectors.toList());
+        List<ShoppingCartOrder> userOrder = orderRepository
+                .findAll()
+                .stream()
+                .filter(dao -> dao.getBuyerId() == buyerId)
+                .map(itemOrderMapper::toModel)
+                .toList();
 
         if (userOrder.isEmpty())
             throw new EntityNotFoundException("La Orden o Carrito del comprador con ID: " + buyerId + " está vacía");
@@ -102,7 +107,12 @@ public class ShoppingCartOrderService {
     //Borrar el carrito de compras para ese comprador
     public void deleteOrderByBuyerId(int buyerId) {
         buyerService.getBuyerById(buyerId); // verificamos que existe
-        orderRepository.findAll().stream().filter(dao -> dao.getBuyerId() == buyerId).map(dao -> new ShoppingCartOrderKey(dao.getBuyerId(), dao.getProductId())).forEach(orderRepository::deleteById);
+        orderRepository
+                .findAll()
+                .stream()
+                .filter(dao -> dao.getBuyerId() == buyerId)
+                .map(dao -> new ShoppingCartOrderKey(dao.getBuyerId(), dao.getProductId()))
+                .forEach(orderRepository::deleteById);
     }
 
     public ShoppingCartOrder partialUpdateItemOrder(int buyerId, int productId, Map<String, Object> updates) {

@@ -11,6 +11,6 @@ import lombok.Setter;
 @NoArgsConstructor
 public class ReportSalesDto {
     private int buyerId;
-    private String NameBuyer;
+    private String nameBuyer;
     Integer totalSales;
 }

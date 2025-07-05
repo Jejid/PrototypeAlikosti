@@ -11,7 +11,6 @@ import com.example.model.RequestRefund;
 import com.example.repository.PaymentRepository;
 import com.example.repository.ProductRepository;
 import com.example.repository.RequestRefundRepository;
-import com.example.utility.DeletionValidator;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -27,15 +26,15 @@ public class RequestRefundService {
     private final ProductRepository productRepository;
     private final OrderProcessedService orderProcessedService;
     private final PaymentRepository paymentRepository;
-    private final DeletionValidator validator;
 
-    public RequestRefundService(RequestRefundRepository requestRefundRepository, RequestRefundMapper requestRefundMapper, ProductRepository productRepository, OrderProcessedService orderProcessedService, PaymentRepository paymentRepository, DeletionValidator validator) {
+    public RequestRefundService(RequestRefundRepository requestRefundRepository, RequestRefundMapper requestRefundMapper,
+                                ProductRepository productRepository, OrderProcessedService orderProcessedService,
+                                PaymentRepository paymentRepository) {
         this.requestRefundRepository = requestRefundRepository;
         this.requestRefundMapper = requestRefundMapper;
         this.productRepository = productRepository;
         this.orderProcessedService = orderProcessedService;
         this.paymentRepository = paymentRepository;
-        this.validator = validator;
     }
 
     public String confirmRefundById(Integer refundId, Integer state) {

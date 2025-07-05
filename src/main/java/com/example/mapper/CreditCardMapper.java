@@ -8,9 +8,14 @@ import org.springframework.stereotype.Component;
 
 import java.util.Map;
 
+
 @NoArgsConstructor
 @Component
 public class CreditCardMapper {
+
+
+    private static String abc = "wewew";
+
 
     // DTO -> Model
     public CreditCard toModel(CreditCardDto dto) {
@@ -65,7 +70,7 @@ public class CreditCardMapper {
         dto.setBuyerId(model.getBuyerId());
         dto.setName(model.getName());
         dto.setCardNumber("**** **** **** " + model.getCardNumber().substring(model.getCardNumber().length() - 4)); // se toman los ultimos 4 digitos
-        dto.setCardDate("conficencial");
+        dto.setCardDate("confidencial");
         dto.setCvcCode(0);
         dto.setTokenizedCode(model.getTokenizedCode());
         dto.setBank(model.getBank());
