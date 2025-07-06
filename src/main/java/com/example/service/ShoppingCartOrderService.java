@@ -82,6 +82,13 @@ public class ShoppingCartOrderService {
 
     public ShoppingCartOrder updateItemOrder(int buyerId, int productId, ShoppingCartOrderDto orderDto) {
 
+        Product product = productService.getProductById(productId);
+        //verificamos que haya stock del producto
+        if (product.getStock() == 0)
+            throw new IllegalArgumentException("Este producto no tiene unidades en el stock en el momento");
+        if (product.getStock() - orderDto.getUnits() < 0)
+            throw new IllegalArgumentException("Este producto no tiene las unidades disponibles suficientes, prueba bajando el número");
+
         // verificamos que exista el producto en el carrito
         if (!orderRepository.existsById(new ShoppingCartOrderKey(buyerId, productId)))
             throw new IllegalArgumentException("Item de la orden con buyerId " + buyerId + " y productId " + productId + " no existe.");
@@ -117,10 +124,20 @@ public class ShoppingCartOrderService {
 
     public ShoppingCartOrder partialUpdateItemOrder(int buyerId, int productId, Map<String, Object> updates) {
 
+        Product product = productService.getProductById(productId);
+        //verificamos que haya stock del producto
+        if (product.getStock() == 0)
+            throw new IllegalArgumentException("Este producto no tiene unidades en el stock en el momento");
+
         ShoppingCartOrderDao itemOrderDao = orderRepository.findById(new ShoppingCartOrderKey(buyerId, productId))
                 .orElseThrow(() -> new EntityNotFoundException("Item de la orden con buyerId: " + buyerId + " productID: " + productId + " no existe"));
 
+
         if (updates.containsKey("units")) {
+            if (product.getStock() - (Integer) updates.get("units") < 0)
+                throw new IllegalArgumentException("Este producto no tiene las unidades disponibles suficientes, prueba bajando el número");
+            if ((Integer) updates.get("units") <= 0)
+                throw new IllegalArgumentException("El número de unidades no puede ser 0 o negativo");
             itemOrderDao.setUnits((Integer) updates.get("units"));
             itemOrderDao.setTotalProduct(itemOrderDao.getUnits() * productService.getProductById(productId).getPrice());
         }
