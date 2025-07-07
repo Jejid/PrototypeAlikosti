@@ -1,5 +1,6 @@
 package com.example.service;
 
+import com.example.dao.CreditCardDao;
 import com.example.dao.PaymentDao;
 import com.example.dao.ProductDao;
 import com.example.dto.OrderProcessedDto;
@@ -13,6 +14,7 @@ import com.example.repository.CreditCardRepository;
 import com.example.repository.PaymentRepository;
 import com.example.repository.ProductRepository;
 import com.example.repository.ShoppingCartOrderRepository;
+import com.example.utility.DateValidator;
 import com.example.utility.DeletionValidator;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -69,8 +71,12 @@ public class PaymentService {
 
         // 2. Validar tarjeta si aplica
         if (paymentDto.getPaymentMethodId() == 2 && paymentDto.getCardNumber() != null) {
-            creditCardRepository.findByCardNumberAndBuyerId(paymentDto.getCardNumber(), paymentDto.getBuyerId())
-                    .orElseThrow(() -> new BadRequestException("Esa tarjeta no pertenece al comprador indicado, ABRE VENTANA DE CREACIÓN DE CREDIT_CARDS"));
+
+            Optional<CreditCardDao> daoOptional = creditCardRepository.findByCardNumberAndBuyerId(paymentDto.getCardNumber(), paymentDto.getBuyerId());
+            CreditCardDao creditCardDao = daoOptional.orElseThrow(() -> new BadRequestException("Esa tarjeta no pertenece al comprador indicado, ABRE VENTANA DE CREACIÓN DE CREDIT_CARDS"));
+
+            if (DateValidator.isExpired(creditCardDao.getCardDate()))
+                throw new IllegalArgumentException("La tarjeta está vencida.");
         }
 
         // 3. Reducir el stock (para reservar ese pedido) o lanzar alerta de producto agotado
