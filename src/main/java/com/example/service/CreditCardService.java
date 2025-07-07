@@ -6,7 +6,6 @@ import com.example.exception.BadRequestException;
 import com.example.exception.EntityNotFoundException;
 import com.example.mapper.CreditCardMapper;
 import com.example.model.CreditCard;
-import com.example.utility.DeletionValidator;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -19,12 +18,10 @@ import java.util.stream.Collectors;
 public class CreditCardService {
     private final com.example.repository.CreditCardRepository creditCardRepository;
     private final CreditCardMapper creditCardMapper;
-    private final DeletionValidator validator;
 
-    public CreditCardService(com.example.repository.CreditCardRepository creditCardRepository, CreditCardMapper creditCardMapper, DeletionValidator validator) {
+    public CreditCardService(com.example.repository.CreditCardRepository creditCardRepository, CreditCardMapper creditCardMapper) {
         this.creditCardRepository = creditCardRepository;
         this.creditCardMapper = creditCardMapper;
-        this.validator = validator;
     }
 
     public List<CreditCard> getAllCreditCards() {
@@ -45,7 +42,6 @@ public class CreditCardService {
     public void deleteCreditCard(Integer id) {
         if (!creditCardRepository.existsById(id))
             throw new EntityNotFoundException("Tarjeta con ID: " + id + ", no encontrada");
-        //validator.deletionValidatorCreditCard(id);
         creditCardRepository.deleteById(id);
     }
 

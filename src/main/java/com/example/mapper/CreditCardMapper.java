@@ -13,10 +13,6 @@ import java.util.Map;
 @Component
 public class CreditCardMapper {
 
-
-    private static String abc = "wewew";
-
-
     // DTO -> Model
     public CreditCard toModel(CreditCardDto dto) {
         if (dto == null) return null;
@@ -29,6 +25,8 @@ public class CreditCardMapper {
         model.setCvcCode(dto.getCvcCode());
         model.setTokenizedCode(dto.getTokenizedCode());
         model.setBank(dto.getBank());
+        model.setCardType(dto.getCardType());
+        model.setFranchise(dto.getFranchise());
         return model;
     }
 
@@ -44,6 +42,8 @@ public class CreditCardMapper {
         dao.setCvcCode(model.getCvcCode());
         dao.setTokenizedCode(model.getTokenizedCode());
         dao.setBank(model.getBank());
+        dao.setCardType(model.getCardType());
+        dao.setFranchise(model.getFranchise());
         return dao;
     }
 
@@ -59,6 +59,8 @@ public class CreditCardMapper {
         model.setCvcCode(dao.getCvcCode());
         model.setTokenizedCode(dao.getTokenizedCode());
         model.setBank(dao.getBank());
+        model.setCardType(dao.getCardType());
+        model.setFranchise(dao.getFranchise());
         return model;
     }
 
@@ -74,6 +76,8 @@ public class CreditCardMapper {
         dto.setCvcCode(0);
         dto.setTokenizedCode(model.getTokenizedCode());
         dto.setBank(model.getBank());
+        dto.setCardType(model.getCardType());
+        dto.setFranchise(model.getFranchise());
         return dto;
     }
 
@@ -103,6 +107,12 @@ public class CreditCardMapper {
                         break;
                     case "bank":
                         if (value instanceof String) dao.setBank((String) value);
+                        break;
+                    case "cardType":
+                        if (value instanceof String) dao.setCardType((String) value);
+                        break;
+                    case "franchise":
+                        if (value instanceof String) dao.setFranchise((String) value);
                         break;
                     default:
                         throw new IllegalArgumentException("El campo " + key + " no es válido o no existe para actualización.");
