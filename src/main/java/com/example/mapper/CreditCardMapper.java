@@ -3,6 +3,7 @@ package com.example.mapper;
 import com.example.dao.CreditCardDao;
 import com.example.dto.CreditCardDto;
 import com.example.model.CreditCard;
+import com.example.utility.DateValidator;
 import lombok.NoArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -97,6 +98,12 @@ public class CreditCardMapper {
                         if (value instanceof String) dao.setCardNumber((String) value);
                         break;
                     case "cardDate":
+                        if (!DateValidator.isValidFormat(value.toString())) {
+                            throw new IllegalArgumentException("Formato de fecha inválido. Usa MM/aa (ej. 07/27).");
+                        }
+                        if (DateValidator.isExpired(value.toString())) {
+                            throw new IllegalArgumentException("La tarjeta está vencida.");
+                        }
                         if (value instanceof String) dao.setCardDate((String) value);
                         break;
                     case "cvcCode":
