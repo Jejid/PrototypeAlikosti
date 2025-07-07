@@ -74,7 +74,7 @@ public class CreditCardMapper {
         dto.setName(model.getName());
         dto.setCardNumber("**** **** **** " + model.getCardNumber().substring(model.getCardNumber().length() - 4)); // se toman los ultimos 4 digitos
         dto.setCardDate("confidencial");
-        dto.setCvcCode(0);
+        dto.setCvcCode("***");
         dto.setTokenizedCode(model.getTokenizedCode());
         dto.setBank(model.getBank());
         dto.setCardType(model.getCardType());
@@ -107,7 +107,7 @@ public class CreditCardMapper {
                         if (value instanceof String) dao.setCardDate((String) value);
                         break;
                     case "cvcCode":
-                        if (value instanceof Number) dao.setCvcCode(((Number) value).intValue());
+                        if (value instanceof String) dao.setCvcCode(((String) value));
                         break;
                     case "tokenizedCode":
                         if (value instanceof String) dao.setTokenizedCode((String) value);

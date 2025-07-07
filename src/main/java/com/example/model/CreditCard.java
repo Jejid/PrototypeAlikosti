@@ -17,7 +17,7 @@ public class CreditCard {
     private String name;
     private String cardNumber;
     private String cardDate;
-    private int cvcCode;
+    private String cvcCode;
     private String tokenizedCode;
     private String bank;
     private String cardType;

@@ -24,7 +24,8 @@ public class CreditCardDao {
 
     private String cardDate;
 
-    private int cvcCode;
+    @Column(name = "cvc_code")
+    private String cvcCode;
 
     @Column(name = "tokenized_code")
     private String tokenizedCode;

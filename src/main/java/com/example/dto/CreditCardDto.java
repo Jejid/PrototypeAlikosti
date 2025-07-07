@@ -25,7 +25,7 @@ public class CreditCardDto {
     private String cardDate;
 
     @NotNull(message = "El código CVC de la tarjeta es necesario")
-    private int cvcCode;
+    private String cvcCode;
 
     private String tokenizedCode;
 
