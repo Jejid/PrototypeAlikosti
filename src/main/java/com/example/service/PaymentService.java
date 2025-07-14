@@ -21,6 +21,7 @@ import com.example.repository.ProductRepository;
 import com.example.repository.ShoppingCartOrderRepository;
 import com.example.utility.DeletionValidator;
 import com.example.utility.PayuRequestBuilder;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -119,7 +120,16 @@ public class PaymentService {
             @SuppressWarnings("unchecked")
             Map<String, Object> txResponse = (Map<String, Object>) payuResponse.get("transactionResponse");
 
-            //System.out.println("Respuesta PayU completa: " + payuResponse);
+            // Imprimir la respuesta completa como JSON
+            try {
+                ObjectMapper mapper = new ObjectMapper();
+                String json = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(payuResponse);
+                System.out.println("📥 Respuesta completa de PayU:\n" + json);
+            } catch (Exception e) {
+                System.out.println("❌ Error al serializar la respuesta de PayU a JSON: " + e.getMessage());
+            }
+
+            
             if (txResponse == null) {
                 throw new IllegalStateException("No se recibió respuesta de transacción desde PayU. Detalles: " + payuResponse);
             }

@@ -50,7 +50,7 @@ public class PayuRequestBuilder {
         additionalValue.setTX_VALUE(txValue);
 
         AdditionalValue.Amount txTax = new AdditionalValue.Amount();
-        txTax.setValue("1000");
+        txTax.setValue(String.valueOf(Integer.parseInt(value) * 0.19));
         txTax.setCurrency(CURRENCY);
         additionalValue.setTX_TAX(txTax);
 
