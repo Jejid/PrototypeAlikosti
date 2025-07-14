@@ -1,12 +1,17 @@
 package com.example.service;
 
-import com.example.dao.CreditCardDao;
 import com.example.dao.PaymentDao;
 import com.example.dao.ProductDao;
+import com.example.dto.BuyerDto;
+import com.example.dto.CreditCardDto;
 import com.example.dto.OrderProcessedDto;
 import com.example.dto.PaymentDto;
+import com.example.dto.payu.PayuPaymentRequest;
 import com.example.exception.BadRequestException;
 import com.example.exception.EntityNotFoundException;
+import com.example.mapper.BuyerMapper;
+import com.example.mapper.CreditCardMapper;
+import com.example.mapper.OrderProcessedMapper;
 import com.example.mapper.PaymentMapper;
 import com.example.model.Payment;
 import com.example.model.ShoppingCartOrder;
@@ -14,8 +19,8 @@ import com.example.repository.CreditCardRepository;
 import com.example.repository.PaymentRepository;
 import com.example.repository.ProductRepository;
 import com.example.repository.ShoppingCartOrderRepository;
-import com.example.utility.DateValidator;
 import com.example.utility.DeletionValidator;
+import com.example.utility.PayuRequestBuilder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,27 +37,35 @@ import java.util.stream.Collectors;
 public class PaymentService {
     private final PaymentRepository paymentRepository;
     private final PaymentMapper paymentMapper;
+    private final BuyerMapper buyerMapper;
     private final DeletionValidator validator;
-    private final ShoppingCartOrderRepository shoppingCartRepository;
     private final CreditCardRepository creditCardRepository;
     private final BuyerService buyerService;
     private final OrderProcessedService orderProcessedService;
     private final ShoppingCartOrderService shoppingCartOrderService;
     private final ProductRepository productRepository;
+    private final ShoppingCartOrderRepository shoppingCartOrderRepository;
+    private final PayuService payuService;
+    private final OrderProcessedMapper orderProcessedMapper;
+    private final CreditCardMapper creditCardMapper;
 
-    public PaymentService(PaymentRepository paymentRepository, PaymentMapper paymentMapper, DeletionValidator validator,
-                          ShoppingCartOrderRepository shoppingCartRepository, CreditCardRepository creditCardRepository,
+    public PaymentService(PaymentRepository paymentRepository, PaymentMapper paymentMapper, BuyerMapper buyerMapper, DeletionValidator validator,
+                          CreditCardRepository creditCardRepository,
                           BuyerService buyerService, OrderProcessedService orderProcessedService1,
-                          ShoppingCartOrderService shoppingCartOrderService1, ProductRepository productRepository) {
+                          ShoppingCartOrderService shoppingCartOrderService1, ProductRepository productRepository, ShoppingCartOrderRepository shoppingCartOrderRepository, PayuService payuService, OrderProcessedMapper orderProcessedMapper, CreditCardMapper creditCardMapper) {
         this.paymentRepository = paymentRepository;
         this.paymentMapper = paymentMapper;
+        this.buyerMapper = buyerMapper;
         this.validator = validator;
-        this.shoppingCartRepository = shoppingCartRepository;
         this.creditCardRepository = creditCardRepository;
         this.buyerService = buyerService;
         this.orderProcessedService = orderProcessedService1;
         this.shoppingCartOrderService = shoppingCartOrderService1;
         this.productRepository = productRepository;
+        this.shoppingCartOrderRepository = shoppingCartOrderRepository;
+        this.payuService = payuService;
+        this.orderProcessedMapper = orderProcessedMapper;
+        this.creditCardMapper = creditCardMapper;
     }
 
     public List<Payment> getPaymentByBuyerId(Integer id) {
@@ -64,112 +77,114 @@ public class PaymentService {
 
     @Transactional
     public Payment createPayment(PaymentDto paymentDto) {
-        // 1. Verificar que el comprador y  orden existan
+        // 1. Verificar que el comprador y orden existan
         buyerService.getBuyerById(paymentDto.getBuyerId());
         List<ShoppingCartOrder> shoppingCartOrderList = shoppingCartOrderService.getOrderByBuyerId(paymentDto.getBuyerId());
 
-
-        // 2. Validar tarjeta si aplica
-        if (paymentDto.getPaymentMethodId() == 2 && paymentDto.getCardNumber() != null) {
-
-            Optional<CreditCardDao> daoOptional = creditCardRepository.findByCardNumberAndBuyerId(paymentDto.getCardNumber(), paymentDto.getBuyerId());
-            CreditCardDao creditCardDao = daoOptional.orElseThrow(() -> new BadRequestException("Esa tarjeta no pertenece al comprador indicado, ABRE VENTANA DE CREACIÓN DE CREDIT_CARDS"));
-
-            if (DateValidator.isExpired(creditCardDao.getCardDate()))
-                throw new IllegalArgumentException("La tarjeta está vencida.");
-        }
-
-        // 3. Reducir el stock (para reservar ese pedido) o lanzar alerta de producto agotado
-        shoppingCartOrderList.forEach(shoppinCartOrder -> {
-            Optional<ProductDao> productOptional = productRepository.findById(shoppinCartOrder.getProductId());
-            ProductDao productDao = productOptional.orElseThrow(() -> new EntityNotFoundException("Producto no encontrado"));
-            //System.out.println("queda en el stock: " + (productDao.getStock() - shoppinCartOrder.getUnits()));
-            if (productDao.getStock() - shoppinCartOrder.getUnits() < 0) {
-                throw new EntityNotFoundException("No se puede crear el pago porque se agotó el stock del producto: " + productDao.getId() + " por favor cambia o elimina el producto del carrito");
-            } else productDao.setStock(productDao.getStock() - shoppinCartOrder.getUnits());
-            productRepository.save(productDao);
-        });
-
-        // 4. Calcular el total del pedido
-        Integer totalOrder = shoppingCartRepository.sumTotalProductsByBuyerId(paymentDto.getBuyerId());
+        // 2. Calcular el total real desde BD
+        Integer totalOrder = shoppingCartOrderRepository.sumTotalProductsByBuyerId(paymentDto.getBuyerId());
         paymentDto.setTotalOrder(totalOrder != null ? totalOrder : 0);
 
-        // 5. Inicializar campos del pago
+        // 3. Inicializar campos comunes
         paymentDto.setDate(LocalDate.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
+        paymentDto.setRefunded(false);
         paymentDto.setConfirmation(0);
         paymentDto.setCodeConfirmation(null);
-        paymentDto.setRefunded(false);
 
-
-        // 6. Guardar el pago
-        Payment savedPayment = paymentMapper.toModel(
-                paymentRepository.save(
-                        paymentMapper.toDao(
-                                paymentMapper.toModel(paymentDto)
-                        )
-                )
-        );
-
-        // 7. Convertir ítems del carrito en órdenes procesadas
-        List<OrderProcessedDto> orderList = shoppingCartOrderList
-                .stream()
+        // 4. Convertir ítems del carrito en órdenes procesadas
+        List<OrderProcessedDto> orderList = shoppingCartOrderList.stream()
                 .map(order -> {
                     OrderProcessedDto dto = new OrderProcessedDto();
-                    dto.setPaymentId(savedPayment.getId());
                     dto.setProductId(order.getProductId());
                     dto.setUnits(order.getUnits());
                     dto.setTotalProduct(order.getTotalProduct());
                     return dto;
-                })
-                .toList();
+                }).toList();
 
-        // 8. Guardar órdenes procesadas (ventas)
+        // 5. Descontar stock
+        updateStock(orderList, "decrease");
+
+        // 6. Procesar pago con tarjeta (PayU)
+        if (paymentDto.getPaymentMethodId() == 2 && paymentDto.getCardNumber() != null) {
+            BuyerDto buyerDto = buyerMapper.toPublicDto(buyerService.getBuyerById(paymentDto.getBuyerId()));
+
+            CreditCardDto creditCardDto = creditCardRepository.findByCardNumberAndBuyerId(
+                            paymentDto.getCardNumber(), paymentDto.getBuyerId())
+                    .map(creditCardMapper::toDto)
+                    .orElseThrow(() -> new BadRequestException("Tarjeta no válida, agrega tarjeta"));
+
+            PayuPaymentRequest payuRequest = PayuRequestBuilder.build(paymentDto, buyerDto, creditCardDto);
+            Map<String, Object> payuResponse = payuService.sendTransaction(payuRequest);
+
+            @SuppressWarnings("unchecked")
+            Map<String, Object> txResponse = (Map<String, Object>) payuResponse.get("transactionResponse");
+
+            //System.out.println("Respuesta PayU completa: " + payuResponse);
+            if (txResponse == null) {
+                throw new IllegalStateException("No se recibió respuesta de transacción desde PayU. Detalles: " + payuResponse);
+            }
+            String state = (String) txResponse.get("state");
+
+            if ("APPROVED".equals(state)) {
+                paymentDto.setConfirmation(1);
+                paymentDto.setCodeConfirmation((Integer) txResponse.get("authorizationCode"));
+            } else if ("DECLINED".equals(state)) {
+                paymentDto.setConfirmation(2);
+            } else {
+                throw new IllegalStateException("Estado desconocido: " + state);
+            }
+        }
+
+        // 7. Guardar el pago
+        Payment savedPayment = paymentMapper.toModel(
+                paymentRepository.save(paymentMapper.toDao(paymentMapper.toModel(paymentDto)))
+        );
+
+        // 8. Asignar paymentId a órdenes procesadas
+        orderList.forEach(order -> order.setPaymentId(savedPayment.getId()));
         orderProcessedService.createMultipleOrdersProcessed(orderList);
 
-        // 9. Limpiar el carrito
-        shoppingCartOrderService.deleteOrderByBuyerId(paymentDto.getBuyerId());
+        // 9. Si fue rechazado, revertir stock y lanzar error
+        if (paymentDto.getConfirmation() == 2) {
+            updateStock(orderList, "increase");
+            throw new BadRequestException("Pago rechazado por PayU");
+        }
 
+        // 10. Limpiar el carrito
+        shoppingCartOrderService.deleteOrderByBuyerId(paymentDto.getBuyerId());
 
         return savedPayment;
     }
 
     public String confirmPaymenteById(Integer paymentId, Integer state) {
-        Optional<PaymentDao> daoOptional = paymentRepository.findById(paymentId);
-        PaymentDao dao = daoOptional.orElseThrow(() -> new EntityNotFoundException("Pago con ID: " + paymentId + ", no encontrado"));
 
-        if (dao.getConfirmation() == 2)
-            throw new BadRequestException("Ese pago ya habia sido rechazado y no se puede cambiar");
-        if (dao.getConfirmation() == 1)
-            throw new BadRequestException("Ese pago ya habia sido aprobado y no se puede cambiar");
+        PaymentDao dao = paymentRepository.findById(paymentId)
+                .orElseThrow(() -> new EntityNotFoundException("Pago con ID: " + paymentId + " no encontrado"));
 
-        switch (state) {
-            case 0:
-                throw new BadRequestException("El estado: 0 no es válido porque indica que sigue pendiente");
-            case 1:
-                dao.setCodeConfirmation(ThreadLocalRandom.current().nextInt(1100, 10000));
-                dao.setConfirmation(1);
-                paymentRepository.save(dao);
+        if (dao.getConfirmation() != 0)
+            throw new BadRequestException("Ese pago ya ha sido procesado (estado: " + dao.getConfirmation() + ")");
 
-                return "Aprobado";
-            case 2:
-                dao.setConfirmation(2);
-                paymentRepository.save(dao);
+        if (state == 0)
+            throw new BadRequestException("El estado: 0 no es válido. Usa 1 (aprobado) o 2 (rechazado)");
 
-                //funcion anonima que aumenta los stock de los productos del pago rechazado
-                orderProcessedService.getOrdersByPaymentId(paymentId).forEach(orderProcessed -> {
-                    Optional<ProductDao> productOptional = productRepository.findById(orderProcessed.getProductId());
-                    ProductDao productDao = productOptional.orElseThrow(() -> new EntityNotFoundException("Producto no encontrado"));
-                    productDao.setStock(productDao.getStock() + orderProcessed.getUnits());
-                    productRepository.save(productDao);
-                });
+        if (state == 1) {
+            dao.setConfirmation(1);
+            dao.setCodeConfirmation(ThreadLocalRandom.current().nextInt(1000, 9999));
+            paymentRepository.save(dao);
+            return "Aprobado manualmente";
+        } else if (state == 2) {
+            dao.setConfirmation(2);
+            paymentRepository.save(dao);
 
-                return "Rechazado";
-            default:
-                throw new IllegalArgumentException("El estado: " + state + " no es válido (1: aprobado, 2: rechazado)");
+            List<OrderProcessedDto> orderList = orderProcessedService.getOrdersByPaymentId(paymentId).stream().map(orderProcessedMapper::toDto).toList();
+            updateStock(orderList, "increase");
 
+            return "Rechazado manualmente";
+        } else {
+            throw new IllegalArgumentException("Estado inválido: " + state);
         }
-
     }
+
 
     // ------- Métodos Basicos-------//
     public List<Payment> getAllPayments() {
@@ -205,4 +220,30 @@ public class PaymentService {
         PaymentDao paymentDaoOrigin = optionalPayment.orElseThrow(() -> new EntityNotFoundException("Pago con ID: " + id + ", no encontrado"));
         return paymentMapper.toModel(paymentRepository.save(paymentMapper.parcialUpdateToDao(paymentDaoOrigin, updates)));
     }
+
+    private void updateStock(List<OrderProcessedDto> orders, String action) {
+        if (!action.equals("increase") && !action.equals("decrease")) {
+            throw new IllegalArgumentException("Acción inválida: " + action + ". Usa 'increase' o 'decrease'.");
+        }
+
+        for (OrderProcessedDto order : orders) {
+            ProductDao producto = productRepository.findById(order.getProductId())
+                    .orElseThrow(() -> new EntityNotFoundException("Producto no encontrado"));
+
+            int nuevoStock = switch (action) {
+                case "increase" -> producto.getStock() + order.getUnits();
+                case "decrease" -> {
+                    int result = producto.getStock() - order.getUnits();
+                    if (result < 0)
+                        throw new BadRequestException("Stock insuficiente para producto ID: " + producto.getId());
+                    yield result;
+                }
+                default -> throw new IllegalStateException("Acción no manejada: " + action);
+            };
+
+            producto.setStock(nuevoStock);
+            productRepository.save(producto);
+        }
+    }
+
 }

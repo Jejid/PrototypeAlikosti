@@ -65,6 +65,23 @@ public class CreditCardMapper {
         return model;
     }
 
+    // DAO -> Dto
+    public CreditCardDto toDto(CreditCardDao dao) {
+        if (dao == null) return null;
+        CreditCardDto dto = new CreditCardDto();
+        dto.setId(dao.getId());
+        dto.setBuyerId(dao.getBuyerId());
+        dto.setName(dao.getName());
+        dto.setCardNumber(dao.getCardNumber());
+        dto.setCardDate(dao.getCardDate());
+        dto.setCvcCode(dao.getCvcCode());
+        dto.setTokenizedCode(dao.getTokenizedCode());
+        dto.setBank(dao.getBank());
+        dto.setCardType(dao.getCardType());
+        dto.setFranchise(dao.getFranchise());
+        return dto;
+    }
+
     // Model -> DTO
     public CreditCardDto toPublicDto(CreditCard model) {
         if (model == null) return null;

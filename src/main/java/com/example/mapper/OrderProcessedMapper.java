@@ -46,7 +46,7 @@ public class OrderProcessedMapper {
     }
 
     // Model -> DTO (toPublicDto)
-    public OrderProcessedDto toPublicDto(OrderProcessed model) {
+    public OrderProcessedDto toDto(OrderProcessed model) {
         if (model == null) return null;
         OrderProcessedDto dto = new OrderProcessedDto();
         dto.setPaymentId(model.getPaymentId());

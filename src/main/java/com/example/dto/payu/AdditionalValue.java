@@ -1,10 +1,16 @@
 package com.example.dto.payu;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 @Data
 public class AdditionalValue {
+
+    @JsonProperty("TX_VALUE")
     private Amount TX_VALUE;
+
+    @JsonProperty("TX_TAX")
+    private Amount TX_TAX;
 
     @Data
     public static class Amount {

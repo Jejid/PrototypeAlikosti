@@ -61,14 +61,25 @@ public class PaymentController {
     }
 
     @PostMapping
-    public ResponseEntity<Map<String, String>> createPayment(@Valid @RequestBody PaymentDto paymentDto) {
+    public ResponseEntity<Map<String, Object>> createPayment(@Valid @RequestBody PaymentDto paymentDto) {
         Payment created = paymentService.createPayment(paymentDto);
 
+        Map<String, Object> response = new HashMap<>();
+        response.put("paymentId", created.getId());
+        response.put("confirmation", created.getConfirmation());
+        response.put("codeConfirmation", created.getCodeConfirmation());
 
-        Map<String, String> response = new HashMap<>();
-        response.put("message", "Pago con ID: " + created.getId() + ", creado exitosamente");
+        String estado;
+        switch (created.getConfirmation()) {
+            case 1 -> estado = "Pago aprobado (tarjeta)";
+            case 2 -> estado = "Pago rechazado (tarjeta)";
+            default -> estado = "Pago pendiente (por confirmar)";
+        }
+        response.put("message", estado);
+
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
+
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Map<String, String>> deletePayment(@PathVariable Integer id) {
