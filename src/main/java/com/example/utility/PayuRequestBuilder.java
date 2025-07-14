@@ -7,6 +7,8 @@ import com.example.dto.payu.*;
 import org.springframework.util.DigestUtils;
 
 import java.nio.charset.StandardCharsets;
+import java.time.YearMonth;
+import java.time.format.DateTimeFormatter;
 
 public class PayuRequestBuilder {
 
@@ -30,7 +32,7 @@ public class PayuRequestBuilder {
 
         // -------- ORDER ------------
         String referenceCode = "PRODUCT_TEST_" + System.currentTimeMillis();
-        String value = "65000";
+        String value = String.valueOf(paymentDto.getTotalOrder());
         String signature = generateSignature(API_KEY, MERCHANT_ID, referenceCode, value, CURRENCY);
 
         Order order = new Order();
@@ -48,7 +50,7 @@ public class PayuRequestBuilder {
         additionalValue.setTX_VALUE(txValue);
 
         AdditionalValue.Amount txTax = new AdditionalValue.Amount();
-        txTax.setValue("10378");
+        txTax.setValue("1000");
         txTax.setCurrency(CURRENCY);
         additionalValue.setTX_TAX(txTax);
 
@@ -56,15 +58,15 @@ public class PayuRequestBuilder {
 
         // BUYER (mínimo requerido)
         Buyer buyer = new Buyer();
-        buyer.setFullName("First name and second buyer name");
-        buyer.setEmailAddress("buyer_test@test.com");
+        buyer.setFullName(buyerDto.getName());
+        buyer.setEmailAddress(buyerDto.getEmail());
         buyer.setContactPhone("7563126");
-        buyer.setDniNumber("123456789");
+        buyer.setDniNumber(buyerDto.getCc());
 
         ShippingAddress shipping = new ShippingAddress();
         shipping.setStreet1("Cr 23 No. 53-50");
-        shipping.setCity("Bogota");
-        shipping.setState("Bogota D.C.");
+        shipping.setCity("Bogotá");
+        shipping.setState("Bogotá D.C.");
         shipping.setCountry("CO");
         shipping.setPostalCode("000000");
         shipping.setPhone("7563126");
@@ -77,29 +79,31 @@ public class PayuRequestBuilder {
 
         // PAYER (mínimo requerido)
         Payer payer = new Payer();
-        payer.setFullName("First name and second payer name");
-        payer.setEmailAddress("payer_test@test.com");
+        payer.setFullName(buyerDto.getName());
+        payer.setEmailAddress(buyerDto.getEmail());
         payer.setContactPhone("7563126");
-        payer.setDniNumber("541566846");
+        payer.setDniNumber(buyerDto.getCc());
 
         BillingAddress billing = new BillingAddress();
         billing.setStreet1("Cr 23 No. 53-50");
-        billing.setCity("Bogota");
+        billing.setCity("Bogotá");
         billing.setCountry("CO");
         payer.setBillingAddress(billing);
         transaction.setPayer(payer);
 
         // CREDIT CARD
         CreditCard card = new CreditCard();
-        card.setNumber("4037997623271984");
-        card.setSecurityCode("321");
-        card.setExpirationDate("2030/12");
+        card.setNumber(creditCardDto.getCardNumber());
+        card.setSecurityCode(creditCardDto.getCvcCode());
+        //card.setExpirationDate("2030/12");
+        card.setExpirationDate(YearMonth.parse(creditCardDto.getCardDate(), DateTimeFormatter.ofPattern("MM/yy"))
+                .format(DateTimeFormatter.ofPattern("yyyy/MM")));
         card.setName("APPROVED"); // importante para sandbox
         transaction.setCreditCard(card);
 
         // Otros campos mandatorios
         transaction.setType("AUTHORIZATION_AND_CAPTURE");
-        transaction.setPaymentMethod("VISA");
+        transaction.setPaymentMethod(creditCardDto.getFranchise());
         transaction.setPaymentCountry("CO");
         transaction.setDeviceSessionId("vghs6tvkcle931686k1900o6e1");
         transaction.setIpAddress("127.0.0.1");

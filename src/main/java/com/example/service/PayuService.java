@@ -21,6 +21,8 @@ public class PayuService {
     }
 
     public Map<String, Object> sendTransaction(PayuPaymentRequest request) {
+
+        //para ver el json generado
         try {
             ObjectMapper mapper = new ObjectMapper();
             String json = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(request);
