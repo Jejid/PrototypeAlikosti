@@ -22,8 +22,8 @@ public class PaymentDto {
 
     private int confirmation;
 
-    private Integer codeConfirmation;
-    
+    private String codeConfirmation;
+
     private String cardNumber;
 
     private boolean refunded = false;

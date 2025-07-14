@@ -38,7 +38,7 @@ public class PayuService {
                 PAYU_URL,
                 HttpMethod.POST,
                 entity,
-                new ParameterizedTypeReference<Map<String, Object>>() {
+                new ParameterizedTypeReference<>() {
                 }
         );
 

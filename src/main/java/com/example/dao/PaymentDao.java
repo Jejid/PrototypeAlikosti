@@ -28,7 +28,7 @@ public class PaymentDao {
 
     private int confirmation;
 
-    private Integer codeConfirmation;
+    private String codeConfirmation;
 
     @Column(name = "card_number", length = 20)
     private String cardNumber;

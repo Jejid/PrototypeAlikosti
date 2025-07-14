@@ -6,9 +6,7 @@ import com.example.dto.PaymentDto;
 import com.example.dto.payu.*;
 import org.springframework.util.DigestUtils;
 
-import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
-import java.util.Locale;
 
 public class PayuRequestBuilder {
 
@@ -32,10 +30,8 @@ public class PayuRequestBuilder {
 
         // -------- ORDER ------------
         String referenceCode = "PRODUCT_TEST_" + System.currentTimeMillis();
-        //String referenceCode = "PRODUCT_TEST_" + ZonedDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
-        BigDecimal value = new BigDecimal("65000.00");
-        String formattedValue = String.format(Locale.US, "%.2f", value);
-        String signature = generateSignature(API_KEY, MERCHANT_ID, referenceCode, formattedValue, CURRENCY);
+        String value = "65000";
+        String signature = generateSignature(API_KEY, MERCHANT_ID, referenceCode, value, CURRENCY);
 
         Order order = new Order();
         order.setAccountId(ACCOUNT_ID);
@@ -47,7 +43,7 @@ public class PayuRequestBuilder {
         // ADDITIONAL VALUES (mínimo requerido)
         AdditionalValue additionalValue = new AdditionalValue();
         AdditionalValue.Amount txValue = new AdditionalValue.Amount();
-        txValue.setValue(formattedValue);
+        txValue.setValue(value);
         txValue.setCurrency(CURRENCY);
         additionalValue.setTX_VALUE(txValue);
 
@@ -111,18 +107,11 @@ public class PayuRequestBuilder {
         transaction.setUserAgent("Mozilla/5.0 (Windows NT 5.1; rv:18.0) Gecko/20100101 Firefox/18.0");
 
         request.setTransaction(transaction);
-
-        System.out.println("Referencia generada: " + referenceCode);
-        System.out.println("Valor formateado: " + formattedValue);
-        System.out.println("Firma generada: " + signature);
-
         return request;
     }
 
     private static String generateSignature(String apiKey, String merchantId, String referenceCode, String value, String currency) {
-        BigDecimal amount = new BigDecimal(value);
-        String formattedValue = String.format(Locale.US, "%.2f", amount);
-        String raw = apiKey + "~" + merchantId + "~" + referenceCode + "~" + formattedValue + "~" + currency;
+        String raw = apiKey + "~" + merchantId + "~" + referenceCode + "~" + value + "~" + currency;
         return DigestUtils.md5DigestAsHex(raw.getBytes(StandardCharsets.UTF_8));
     }
 }

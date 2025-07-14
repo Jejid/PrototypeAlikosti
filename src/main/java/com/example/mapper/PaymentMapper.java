@@ -102,8 +102,8 @@ public class PaymentMapper {
                         break;
                     case "codeConfirmation":
                     case "code_confirmation":
-                        if (value == null || value instanceof Number)
-                            dao.setCodeConfirmation(value == null ? null : ((Number) value).intValue());
+                        if (value == null || value instanceof String)
+                            dao.setCodeConfirmation(value == null ? null : ((String) value));
                         break;
                     case "cardNumber":
                     case "card_number":

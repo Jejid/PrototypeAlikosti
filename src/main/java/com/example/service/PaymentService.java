@@ -127,7 +127,7 @@ public class PaymentService {
 
             if ("APPROVED".equals(state)) {
                 paymentDto.setConfirmation(1);
-                paymentDto.setCodeConfirmation((Integer) txResponse.get("authorizationCode"));
+                paymentDto.setCodeConfirmation((String) txResponse.get("authorizationCode"));
             } else if ("DECLINED".equals(state)) {
                 paymentDto.setConfirmation(2);
             } else {
@@ -169,7 +169,7 @@ public class PaymentService {
 
         if (state == 1) {
             dao.setConfirmation(1);
-            dao.setCodeConfirmation(ThreadLocalRandom.current().nextInt(1000, 9999));
+            dao.setCodeConfirmation(String.valueOf(ThreadLocalRandom.current().nextInt(1000, 9999)));
             paymentRepository.save(dao);
             return "Aprobado manualmente";
         } else if (state == 2) {

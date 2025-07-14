@@ -1,5 +1,6 @@
 package com.example.model;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -7,6 +8,7 @@ import lombok.Setter;
 @Setter
 @Getter
 @NoArgsConstructor
+@AllArgsConstructor
 public class Payment {
 
     private int id;
@@ -15,22 +17,7 @@ public class Payment {
     private int totalOrder;
     private String date;
     private int confirmation;
-    private Integer codeConfirmation;
+    private String codeConfirmation;
     private String cardNumber;
     private boolean refunded;
-    
-
-    public Payment(int id, int buyerId, int paymentMethodId, int totalOrder, String date,
-                   int confirmation, Integer codeConfirmation, String cardNumber, boolean refunded) {
-        this.id = id;
-        this.buyerId = buyerId;
-        this.paymentMethodId = paymentMethodId;
-        this.totalOrder = totalOrder;
-        this.date = date;
-        this.confirmation = confirmation;
-        this.codeConfirmation = codeConfirmation;
-        this.cardNumber = cardNumber;
-        this.refunded = refunded;
-    }
-
 }
