@@ -9,6 +9,7 @@ import com.example.dto.PaymentDto;
 import com.example.dto.payu.PayuPaymentRequest;
 import com.example.exception.BadRequestException;
 import com.example.exception.EntityNotFoundException;
+import com.example.exception.PayuTransactionException;
 import com.example.mapper.BuyerMapper;
 import com.example.mapper.CreditCardMapper;
 import com.example.mapper.OrderProcessedMapper;
@@ -129,9 +130,9 @@ public class PaymentService {
                 System.out.println("❌ Error al serializar la respuesta de PayU a JSON: " + e.getMessage());
             }
 
-            
+
             if (txResponse == null) {
-                throw new IllegalStateException("No se recibió respuesta de transacción desde PayU. Detalles: " + payuResponse);
+                throw new PayuTransactionException("No se recibió respuesta de transacción desde PayU. Detalles: " + payuResponse);
             }
             String state = (String) txResponse.get("state");
 
@@ -141,7 +142,7 @@ public class PaymentService {
             } else if ("DECLINED".equals(state)) {
                 paymentDto.setConfirmation(2);
             } else {
-                throw new IllegalStateException("Estado desconocido: " + state);
+                throw new PayuTransactionException("Estado desconocido: " + state);
             }
         }
 
@@ -157,7 +158,7 @@ public class PaymentService {
         // 9. Si fue rechazado, revertir stock y lanzar error
         if (paymentDto.getConfirmation() == 2) {
             updateStock(orderList, "increase");
-            throw new BadRequestException("Pago rechazado por PayU");
+            throw new PayuTransactionException("Pago rechazado por PayU");
         }
 
         // 10. Limpiar el carrito
