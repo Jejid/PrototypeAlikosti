@@ -27,4 +27,6 @@ public class RequestRefundDto {
     @Min(value = 0, message = "El tipo de reembolso debe ser mayor o igual a 0")
     private int refundType;
 
+    private String reason;
+
 }

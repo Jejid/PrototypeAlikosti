@@ -30,7 +30,6 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
@@ -115,7 +114,7 @@ public class PaymentService {
                     .map(creditCardMapper::toDto)
                     .orElseThrow(() -> new BadRequestException("Tarjeta no válida, agrega tarjeta"));
 
-            PayuPaymentRequest payuRequest = PayuRequestBuilder.build(paymentDto, buyerDto, creditCardDto);
+            PayuPaymentRequest payuRequest = PayuRequestBuilder.buildPayment(paymentDto, buyerDto, creditCardDto);
             Map<String, Object> payuResponse = payuService.sendTransaction(payuRequest);
 
             @SuppressWarnings("unchecked")
@@ -138,6 +137,8 @@ public class PaymentService {
 
             if ("APPROVED".equals(state)) {
                 paymentDto.setConfirmation(1);
+                paymentDto.setPaymentGatewayOrderId(String.valueOf(txResponse.get("orderId")));
+                paymentDto.setPaymentGatewayTransactionId((String) txResponse.get("transactionId"));
                 paymentDto.setCodeConfirmation((String) txResponse.get("authorizationCode"));
             } else if ("DECLINED".equals(state)) {
                 paymentDto.setConfirmation(2);
@@ -216,7 +217,7 @@ public class PaymentService {
         paymentRepository.deleteById(id);
     }
 
-    public Payment updatePayment(Integer id, PaymentDto updatedPaymentDto) {
+    /*public Payment updatePayment(Integer id, PaymentDto updatedPaymentDto) {
         paymentRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Pago con ID: " + id + ", no encontrado"));
         if (!Objects.equals(updatedPaymentDto.getId(), id))
             throw new BadRequestException("El ID ingresado en el JSON no coincide con el ID de actualización: " + id);
@@ -230,7 +231,7 @@ public class PaymentService {
         Optional<PaymentDao> optionalPayment = paymentRepository.findById(id);
         PaymentDao paymentDaoOrigin = optionalPayment.orElseThrow(() -> new EntityNotFoundException("Pago con ID: " + id + ", no encontrado"));
         return paymentMapper.toModel(paymentRepository.save(paymentMapper.parcialUpdateToDao(paymentDaoOrigin, updates)));
-    }
+    }*/
 
     private void updateStock(List<OrderProcessedDto> orders, String action) {
         if (!action.equals("increase") && !action.equals("decrease")) {

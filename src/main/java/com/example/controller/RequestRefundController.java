@@ -74,6 +74,7 @@ public class RequestRefundController {
         return ResponseEntity.ok(response);
     }
 
+    /*
     @PutMapping("/{id}")
     public ResponseEntity<Map<String, String>> updateRequestRefund(@PathVariable Integer id, @Valid @RequestBody RequestRefundDto requestRefundDto) {
         RequestRefund updated = requestRefundService.updateRequestRefund(id, requestRefundDto);
@@ -91,4 +92,5 @@ public class RequestRefundController {
         response.put("message", "Solicitud de reembolso con ID: " + updated.getId() + ", campo/s actualizado/s exitosamente");
         return ResponseEntity.ok(response);
     }
+    */
 }

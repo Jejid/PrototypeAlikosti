@@ -27,4 +27,8 @@ public class PaymentDto {
     private String cardNumber;
 
     private boolean refunded = false;
+
+    private String paymentGatewayOrderId;
+
+    private String paymentGatewayTransactionId;
 }

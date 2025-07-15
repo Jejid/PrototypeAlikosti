@@ -21,6 +21,7 @@ public class RequestRefundMapper {
         model.setPaymentId(dto.getPaymentId());
         model.setConfirmation(dto.getConfirmation());
         model.setRefundType(dto.getRefundType());
+        model.setReason(dto.getReason());
         return model;
     }
 
@@ -33,6 +34,7 @@ public class RequestRefundMapper {
         dao.setPaymentId(model.getPaymentId());
         dao.setConfirmation(model.getConfirmation());
         dao.setRefundType(model.getRefundType());
+        dao.setReason(model.getReason());
         return dao;
     }
 
@@ -45,6 +47,7 @@ public class RequestRefundMapper {
         model.setPaymentId(dao.getPaymentId());
         model.setConfirmation(dao.getConfirmation());
         model.setRefundType(dao.getRefundType());
+        model.setReason(dao.getReason());
         return model;
     }
 
@@ -57,6 +60,7 @@ public class RequestRefundMapper {
         dto.setPaymentId(model.getPaymentId());
         dto.setConfirmation(model.getConfirmation());
         dto.setRefundType(model.getRefundType());
+        dto.setReason(model.getReason());
         return dto;
     }
 

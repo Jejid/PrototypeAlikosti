@@ -25,6 +25,8 @@ public class PaymentMapper {
         model.setCodeConfirmation(dto.getCodeConfirmation());
         model.setCardNumber(dto.getCardNumber());
         model.setRefunded(dto.isRefunded());
+        model.setPaymentGatewayOrderId(dto.getPaymentGatewayOrderId());
+        model.setPaymentGatewayTransactionId(dto.getPaymentGatewayTransactionId());
         return model;
     }
 
@@ -41,6 +43,8 @@ public class PaymentMapper {
         dao.setCodeConfirmation(model.getCodeConfirmation());
         dao.setCardNumber(model.getCardNumber());
         dao.setRefunded(model.isRefunded());
+        dao.setPaymentGatewayOrderId(model.getPaymentGatewayOrderId());
+        dao.setPaymentGatewayTransactionId(model.getPaymentGatewayTransactionId());
         return dao;
     }
 
@@ -57,6 +61,8 @@ public class PaymentMapper {
         model.setCodeConfirmation(dao.getCodeConfirmation());
         model.setCardNumber(dao.getCardNumber());
         model.setRefunded(dao.isRefunded());
+        model.setPaymentGatewayOrderId(dao.getPaymentGatewayOrderId());
+        model.setPaymentGatewayTransactionId(dao.getPaymentGatewayTransactionId());
         return model;
     }
 

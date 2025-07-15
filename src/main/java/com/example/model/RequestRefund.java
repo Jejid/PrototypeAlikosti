@@ -15,4 +15,5 @@ public class RequestRefund {
     private int paymentId;
     private int confirmation;
     private int refundType;
+    private String reason;
 }

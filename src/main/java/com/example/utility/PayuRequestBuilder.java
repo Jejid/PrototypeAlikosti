@@ -18,19 +18,18 @@ public class PayuRequestBuilder {
     private static final String MERCHANT_ID = "508029";                  // sandbox
     private static final String CURRENCY = "COP";
 
-    public static PayuPaymentRequest build(PaymentDto paymentDto, BuyerDto buyerDto, CreditCardDto creditCardDto) {
+    // ✅ Funcion para construir solicitud de pago
+    public static PayuPaymentRequest buildPayment(PaymentDto paymentDto, BuyerDto buyerDto, CreditCardDto creditCardDto) {
         PayuPaymentRequest request = new PayuPaymentRequest();
         request.setTest(true);
         request.setCommand("SUBMIT_TRANSACTION");
         request.setLanguage("es");
 
-        // -------- MERCHANT ------------
         Merchant merchant = new Merchant();
         merchant.setApiKey(API_KEY);
         merchant.setApiLogin(API_LOGIN);
         request.setMerchant(merchant);
 
-        // -------- ORDER ------------
         String referenceCode = "PRODUCT_TEST_" + System.currentTimeMillis();
         String value = String.valueOf(paymentDto.getTotalOrder());
         String signature = generateSignature(API_KEY, MERCHANT_ID, referenceCode, value, CURRENCY);
@@ -42,7 +41,6 @@ public class PayuRequestBuilder {
         order.setLanguage("es");
         order.setSignature(signature);
 
-        // ADDITIONAL VALUES (mínimo requerido)
         AdditionalValue additionalValue = new AdditionalValue();
         AdditionalValue.Amount txValue = new AdditionalValue.Amount();
         txValue.setValue(value);
@@ -56,7 +54,6 @@ public class PayuRequestBuilder {
 
         order.setAdditionalValues(additionalValue);
 
-        // BUYER (mínimo requerido)
         Buyer buyer = new Buyer();
         buyer.setFullName(buyerDto.getName());
         buyer.setEmailAddress(buyerDto.getEmail());
@@ -73,11 +70,9 @@ public class PayuRequestBuilder {
         buyer.setShippingAddress(shipping);
         order.setBuyer(buyer);
 
-        // -------- TRANSACTION ------------
         Transaction transaction = new Transaction();
         transaction.setOrder(order);
 
-        // PAYER (mínimo requerido)
         Payer payer = new Payer();
         payer.setFullName(buyerDto.getName());
         payer.setEmailAddress(buyerDto.getEmail());
@@ -91,17 +86,14 @@ public class PayuRequestBuilder {
         payer.setBillingAddress(billing);
         transaction.setPayer(payer);
 
-        // CREDIT CARD
         CreditCard card = new CreditCard();
         card.setNumber(creditCardDto.getCardNumber());
         card.setSecurityCode(creditCardDto.getCvcCode());
-        //card.setExpirationDate("2030/12");
         card.setExpirationDate(YearMonth.parse(creditCardDto.getCardDate(), DateTimeFormatter.ofPattern("MM/yy"))
                 .format(DateTimeFormatter.ofPattern("yyyy/MM")));
-        card.setName("APPROVED"); // importante para sandbox
+        card.setName("APPROVED");
         transaction.setCreditCard(card);
 
-        // Otros campos mandatorios
         transaction.setType("AUTHORIZATION_AND_CAPTURE");
         transaction.setPaymentMethod(creditCardDto.getFranchise());
         transaction.setPaymentCountry("CO");
@@ -114,6 +106,42 @@ public class PayuRequestBuilder {
         return request;
     }
 
+    // ✅ Funcion para construir solicitud de reembolso
+    public static PayuRefundRequest buildRefund(String orderId, String parentTransactionId, String reason, Double partialAmount) {
+        PayuRefundRequest request = new PayuRefundRequest();
+        request.setTest(true);
+        request.setLanguage("es");
+        request.setCommand("SUBMIT_TRANSACTION");
+
+        Merchant merchant = new Merchant();
+        merchant.setApiKey(API_KEY);
+        merchant.setApiLogin(API_LOGIN);
+        request.setMerchant(merchant);
+
+        Order order = new Order();
+        order.setId(orderId);
+
+        RefundTransaction refundTransaction = RefundTransaction.builder()
+                .order(order)
+                .type(partialAmount != null ? "PARTIAL_REFUND" : "REFUND")
+                .parentTransactionId(parentTransactionId)
+                .reason(reason)
+                .build();
+
+        if (partialAmount != null) {
+            AdditionalValue additionalValue = new AdditionalValue();
+            AdditionalValue.Amount txValue = new AdditionalValue.Amount();
+            txValue.setValue(String.valueOf(partialAmount));
+            txValue.setCurrency("COP");
+            additionalValue.setTX_VALUE(txValue);
+            refundTransaction.setAdditionalValues(additionalValue);
+        }
+
+        request.setTransaction(refundTransaction);
+        return request;
+    }
+
+    // funcion para generar la firma de la solicitud
     private static String generateSignature(String apiKey, String merchantId, String referenceCode, String value, String currency) {
         String raw = apiKey + "~" + merchantId + "~" + referenceCode + "~" + value + "~" + currency;
         return DigestUtils.md5DigestAsHex(raw.getBytes(StandardCharsets.UTF_8));

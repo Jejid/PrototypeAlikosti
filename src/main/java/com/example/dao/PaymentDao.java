@@ -35,4 +35,10 @@ public class PaymentDao {
 
     @Column(nullable = false)
     private boolean refunded = false;
+
+    @Column(name = "paymentgateway_order_id")
+    private String paymentGatewayOrderId;
+
+    @Column(name = "paymentgateway_transaction_id")
+    private String paymentGatewayTransactionId;
 }

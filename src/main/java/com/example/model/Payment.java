@@ -20,4 +20,6 @@ public class Payment {
     private String codeConfirmation;
     private String cardNumber;
     private boolean refunded;
+    private String paymentGatewayOrderId;
+    private String paymentGatewayTransactionId;
 }
