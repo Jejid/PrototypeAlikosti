@@ -12,7 +12,6 @@ public class RequestRefundDto {
 
     private int id;
 
-    @NotNull(message = "El ID del comprador es necesario")
     private int buyerId;
 
     @NotNull(message = "El ID del pago es necesario")

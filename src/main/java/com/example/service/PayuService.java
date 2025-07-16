@@ -25,7 +25,7 @@ public class PayuService {
         this.restTemplate = restTemplate;
     }
 
-    public Map<String, Object> sendTransaction(PayuPaymentRequest request) {
+    public Map<String, Object> sendPaymentTransaction(PayuPaymentRequest request) {
 
         try {
             // 🔍 Imprimir JSON saliente (opcional)

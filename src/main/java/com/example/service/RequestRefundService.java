@@ -45,47 +45,50 @@ public class RequestRefundService {
     }
 
     public String confirmRefundById(Integer refundId, Integer state) {
-        Optional<RequestRefundDao> daoOptional = requestRefundRepository.findById(refundId);
-        RequestRefundDao requestRefundDao = daoOptional.orElseThrow(() -> new EntityNotFoundException("Reembolso con ID: " + refundId + ", no encontrado"));
+        RequestRefundDao refundDao = requestRefundRepository.findById(refundId)
+                .orElseThrow(() -> new EntityNotFoundException("Reembolso con ID: " + refundId + " no encontrado"));
 
+        int currentConfirmation = refundDao.getConfirmation();
 
-        if (requestRefundDao.getConfirmation() == 2)
-            throw new BadRequestException("Ese reembolso ya habia sido rechazado y no se puede cambiar");
-        if (requestRefundDao.getConfirmation() == 1)
-            throw new BadRequestException("Ese reembolso ya habia sido aprobado y no se puede cambiar");
+        if (currentConfirmation == 1)
+            throw new BadRequestException("Ese reembolso ya había sido aprobado y no se puede cambiar");
 
-        //0 pendiente,1 aprobado, 2 rechazado
-        switch (state) {
-            case 0:
-                throw new BadRequestException("El estado: 0 no es válido porque indica que sigue pendiente");
-            case 1:
-                requestRefundDao.setConfirmation(1);
+        if (currentConfirmation == 2)
+            throw new BadRequestException("Ese reembolso ya había sido rechazado y no se puede cambiar");
 
-                //volvemos verdadero el estado de reembolso del pago
-                PaymentDao paymentDao = paymentRepository.findById(requestRefundDao.getPaymentId()).orElseThrow();
-                paymentDao.setRefunded(true);
-                paymentRepository.save(paymentDao);
-                requestRefundRepository.save(requestRefundDao);
+        if (state == 0)
+            throw new BadRequestException("El estado 0 no es válido porque indica que sigue pendiente");
 
-                //función anonima que aumenta el stock de los productos si el reembolso es aprobado con tipo 2, es decir que no es pago Pasarela
-                //pero aun se recupera el stock
-                if (requestRefundDao.getRefundType() == 2)
-                    orderProcessedService.getOrdersByPaymentId(requestRefundDao.getPaymentId()).forEach(orderProcessed -> {
-                        Optional<ProductDao> productOptional = productRepository.findById(orderProcessed.getProductId());
-                        ProductDao productDao = productOptional.orElseThrow(() -> new EntityNotFoundException("Producto no encontrado"));
-                        productDao.setStock(productDao.getStock() + orderProcessed.getUnits());
-                        productRepository.save(productDao);
-                    });
+        if (state == 1) {
+            refundDao.setConfirmation(1);
 
-                return "Aprobado";
-            case 2:
-                requestRefundDao.setConfirmation(2);
-                requestRefundRepository.save(requestRefundDao);
+            PaymentDao paymentDao = paymentRepository.findById(refundDao.getPaymentId())
+                    .orElseThrow(() -> new EntityNotFoundException("Pago no encontrado con ID: " + refundDao.getPaymentId()));
 
-                return "Rechazado";
-            default:
-                throw new IllegalArgumentException("El estado: " + state + " no es válido (1: aprobado, 2: rechazado)");
+            paymentDao.setRefunded(true);
+            paymentRepository.save(paymentDao);
+
+            //Si es tipo 2 devolvemos stock
+            if (refundDao.getRefundType() == 2) {
+                orderProcessedService.getOrdersByPaymentId(refundDao.getPaymentId()).forEach(order -> {
+                    ProductDao product = productRepository.findById(order.getProductId())
+                            .orElseThrow(() -> new EntityNotFoundException("Producto no encontrado con ID: " + order.getProductId()));
+                    product.setStock(product.getStock() + order.getUnits());
+                    productRepository.save(product);
+                });
+            }
+
+            requestRefundRepository.save(refundDao);
+            return "Aprobado";
         }
+
+        if (state == 2) {
+            refundDao.setConfirmation(2);
+            requestRefundRepository.save(refundDao);
+            return "Rechazado";
+        }
+
+        throw new IllegalArgumentException("El estado: " + state + " no es válido (1: aprobado, 2: rechazado)");
     }
 
     public List<RequestRefund> getAllRequestRefunds() {
@@ -101,85 +104,76 @@ public class RequestRefundService {
 
     @Transactional
     public RequestRefund createRequestRefund(RequestRefundDto refundDto) {
-
-        refundDto.setConfirmation(0); // estado inicial: pendiente
+        refundDto.setConfirmation(0); // Estado inicial: pendiente
 
         PaymentDao paymentDao = paymentRepository.findById(refundDto.getPaymentId())
                 .orElseThrow(() -> new EntityNotFoundException("Pago con ID " + refundDto.getPaymentId() + " no encontrado"));
 
+        // Asignar buyerId automáticamente
+        refundDto.setBuyerId(paymentDao.getBuyerId());
+
         if (paymentDao.isRefunded())
-            throw new IllegalArgumentException("Este pago ya fue reembolsado, no puedes solicitar otro reembolso");
+            throw new IllegalArgumentException("Este pago ya fue reembolsado, no puedes solicitar otro reembolso.");
 
-        // Si es reembolso automático por PayU
         if (refundDto.getRefundType() == 1) {
+            // Validar existencia de IDs para PayU
+            String orderId = paymentDao.getPaymentGatewayOrderId();
+            String transactionId = paymentDao.getPaymentGatewayTransactionId();
 
+            if (orderId == null || transactionId == null)
+                throw new PayuTransactionException("Este pago no tiene IDs válidos de PayU para reembolso.");
 
-            if (paymentDao.getPaymentGatewayOrderId() == null || paymentDao.getPaymentGatewayTransactionId() == null) {
-                throw new PayuTransactionException("Este pago no tiene IDs válidos de PayU para solicitar reembolso.");
-            }
-
-            // Construir solicitud
-            PayuRefundRequest refundRequest = PayuRequestBuilder.buildRefund(
-                    paymentDao.getPaymentGatewayOrderId(),
-                    paymentDao.getPaymentGatewayTransactionId(),
-                    "Razón genérica de reembolso",
-                    null // no parcial
-            );
-
+            // Construir y enviar solicitud
+            PayuRefundRequest refundRequest = PayuRequestBuilder.buildRefund(orderId, transactionId, refundDto.getReason(), null);
             Map<String, Object> response = payuService.sendRefundTransaction(refundRequest);
 
-            // 🔍 Verificación de código general
             String responseCode = (String) response.get("code");
             if ("ERROR".equalsIgnoreCase(responseCode)) {
-                String errorMessage = (String) response.getOrDefault("error", "Error desconocido desde PayU al solicitar el reembolso.");
-                throw new PayuTransactionException("Error en PayU: " + errorMessage);
+                throw new PayuTransactionException("Error en PayU: " + response.getOrDefault("error", "Mensaje no disponible"));
             }
 
-            // 🔍 Validación de transactionResponse
             @SuppressWarnings("unchecked")
             Map<String, Object> txResponse = (Map<String, Object>) response.get("transactionResponse");
-            if (txResponse == null) {
-                throw new PayuTransactionException("❌ Respuesta inválida: transactionResponse es null. Respuesta completa: " + response);
-            }
+            if (txResponse == null)
+                throw new PayuTransactionException("Respuesta inválida: transactionResponse es null. Respuesta completa: " + response);
 
-            // Mostrar respuesta completa para debug
+            // Imprimir la respuesta completa como JSON
             try {
                 ObjectMapper mapper = new ObjectMapper();
-                System.out.println("📥 Respuesta de PayU (refund):\n" +
-                        mapper.writerWithDefaultPrettyPrinter().writeValueAsString(response));
+                String json = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(response);
+                System.out.println("📥 Respuesta de PayU (refund):\n" + json);
             } catch (JsonProcessingException e) {
                 System.out.println("❌ Error al serializar la respuesta de PayU: " + e.getMessage());
             }
 
-            // Procesar estado
             String state = (String) txResponse.get("state");
-            if (!"APPROVED".equalsIgnoreCase(state) && !"PENDING".equalsIgnoreCase(state)) {
+            if (!"APPROVED".equalsIgnoreCase(state) && !"PENDING".equalsIgnoreCase(state))
                 throw new PayuTransactionException("Reembolso fallido. Estado recibido: " + state);
-            }
 
             if ("PENDING".equalsIgnoreCase(state)) {
-                String pendingReason = (String) txResponse.getOrDefault("pendingReason", "No especificado");
-                System.out.println("⏳ Reembolso pendiente por: " + pendingReason);
+                String reason = (String) txResponse.getOrDefault("pendingReason", "No especificado");
+                System.out.println("⏳ Reembolso pendiente por: " + reason);
             }
 
-            // 🟢 Marcar como aprobado en la app (aunque PayU diga PENDING, lo aceptamos como válido)
+            // ✅ Marcar como aprobado localmente
             refundDto.setConfirmation(1);
             paymentDao.setRefunded(true);
             paymentRepository.save(paymentDao);
 
-            // 🛒 Devolver stock si es tipo 1
+            // 🛒 Devolver stock
             orderProcessedService.getOrdersByPaymentId(refundDto.getPaymentId()).forEach(order -> {
-                ProductDao product = productRepository.findById(order.getProductId())
-                        .orElseThrow(() -> new EntityNotFoundException("Producto no encontrado con ID " + order.getProductId()));
-                product.setStock(product.getStock() + order.getUnits());
-                productRepository.save(product);
+                productRepository.findById(order.getProductId()).ifPresent(product -> {
+                    product.setStock(product.getStock() + order.getUnits());
+                    productRepository.save(product);
+                });
             });
         }
 
-        // Guardar solicitud en base de datos
         return requestRefundMapper.toModel(
                 requestRefundRepository.save(
-                        requestRefundMapper.toDao(requestRefundMapper.toModel(refundDto))
+                        requestRefundMapper.toDao(
+                                requestRefundMapper.toModel(refundDto)
+                        )
                 )
         );
     }

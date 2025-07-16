@@ -115,7 +115,7 @@ public class PaymentService {
                     .orElseThrow(() -> new BadRequestException("Tarjeta no válida, agrega tarjeta"));
 
             PayuPaymentRequest payuRequest = PayuRequestBuilder.buildPayment(paymentDto, buyerDto, creditCardDto);
-            Map<String, Object> payuResponse = payuService.sendTransaction(payuRequest);
+            Map<String, Object> payuResponse = payuService.sendPaymentTransaction(payuRequest);
 
             @SuppressWarnings("unchecked")
             Map<String, Object> txResponse = (Map<String, Object>) payuResponse.get("transactionResponse");

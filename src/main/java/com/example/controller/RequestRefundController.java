@@ -60,9 +60,17 @@ public class RequestRefundController {
     public ResponseEntity<Map<String, String>> createRequestRefund(@Valid @RequestBody RequestRefundDto requestRefundDto) {
         RequestRefund created = requestRefundService.createRequestRefund(requestRefundDto);
 
-        Map<String, String> response = new HashMap<>();
-        response.put("message", "Solicitud de reembolso con ID: " + created.getId() + ", creada exitosamente");
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        String mensaje;
+        switch (created.getConfirmation()) {
+            case 1 ->
+                    mensaje = "Solicitud de reembolso con ID: " + created.getId() + ", aprobada automáticamente por PayU.";
+            case 2 ->
+                    mensaje = "Solicitud de reembolso con ID: " + created.getId() + ", rechazada automáticamente por PayU.";
+            default ->
+                    mensaje = "Solicitud de reembolso con ID: " + created.getId() + ", creada exitosamente y está pendiente de revisión.";
+        }
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("message", mensaje));
     }
 
     @DeleteMapping("/{id}")
