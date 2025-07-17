@@ -1,11 +1,16 @@
 package com.example.service;
 
 import com.example.dao.CreditCardDao;
+import com.example.dto.BuyerDto;
 import com.example.dto.CreditCardDto;
+import com.example.dto.payu.PayuTokenRequest;
 import com.example.exception.EntityNotFoundException;
+import com.example.exception.PayuTransactionException;
+import com.example.mapper.BuyerMapper;
 import com.example.mapper.CreditCardMapper;
 import com.example.model.CreditCard;
 import com.example.utility.DateValidator;
+import com.example.utility.PayuRequestBuilder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -17,10 +22,16 @@ import java.util.stream.Collectors;
 public class CreditCardService {
     private final com.example.repository.CreditCardRepository creditCardRepository;
     private final CreditCardMapper creditCardMapper;
+    private final BuyerService buyerService;
+    private final BuyerMapper buyerMapper;
+    private final PayuService payuService;
 
-    public CreditCardService(com.example.repository.CreditCardRepository creditCardRepository, CreditCardMapper creditCardMapper) {
+    public CreditCardService(com.example.repository.CreditCardRepository creditCardRepository, CreditCardMapper creditCardMapper, BuyerService buyerService, BuyerMapper buyerMapper, PayuService payuService) {
         this.creditCardRepository = creditCardRepository;
         this.creditCardMapper = creditCardMapper;
+        this.buyerService = buyerService;
+        this.buyerMapper = buyerMapper;
+        this.payuService = payuService;
     }
 
     public List<CreditCard> getAllCreditCards() {
@@ -43,6 +54,24 @@ public class CreditCardService {
         if (DateValidator.isExpired(creditCardDto.getCardDate())) {
             throw new IllegalArgumentException("La tarjeta está vencida.");
         }
+
+        //Generamos Token de la tarjeta
+        BuyerDto buyerdto = buyerMapper.toDto(buyerService.getBuyerById(creditCardDto.getBuyerId()));
+
+        PayuTokenRequest tokenRequest = PayuRequestBuilder.buildTokenRequest(buyerdto, creditCardDto);
+        Map<String, Object> payuResponse = payuService.sendTokenRequest(tokenRequest);
+
+        @SuppressWarnings("unchecked")
+        Map<String, Object> creditCardToken = (Map<String, Object>) payuResponse.get("creditCardToken");
+
+        Object tokenId = creditCardToken.get("creditCardTokenId");
+        if (tokenId == null) {
+            throw new PayuTransactionException("Token no generado correctamente: no se recibió el ID del token.");
+        }
+
+        // Guardar el token en la base de datos
+        creditCardDto.setTokenizedCode((String) tokenId);
+
 
         return creditCardMapper.toModel(creditCardRepository.save(creditCardMapper.toDao(creditCardMapper.toModel(creditCardDto))));
     }

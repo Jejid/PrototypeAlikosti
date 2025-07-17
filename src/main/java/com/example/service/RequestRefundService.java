@@ -178,7 +178,6 @@ public class RequestRefundService {
         );
     }
 
-
     public void deleteRequestRefund(Integer id) {
         if (!requestRefundRepository.existsById(id))
             throw new EntityNotFoundException("Solicitud de reembolso con ID: " + id + ", no encontrada");

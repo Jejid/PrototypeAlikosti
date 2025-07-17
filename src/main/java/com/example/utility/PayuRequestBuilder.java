@@ -141,6 +141,29 @@ public class PayuRequestBuilder {
         return request;
     }
 
+    public static PayuTokenRequest buildTokenRequest(BuyerDto buyerDto, CreditCardDto cardDto) {
+        PayuTokenRequest request = new PayuTokenRequest();
+        request.setLanguage("es");
+        request.setCommand("CREATE_TOKEN");
+
+        Merchant merchant = new Merchant();
+        merchant.setApiKey(API_KEY);
+        merchant.setApiLogin(API_LOGIN);
+        request.setMerchant(merchant);
+
+        CreditCardToken token = new CreditCardToken();
+        token.setPayerId(String.valueOf(buyerDto.getId())); // Usa el ID interno de tu base de datos
+        token.setName(buyerDto.getName());
+        token.setIdentificationNumber(buyerDto.getCc());
+        token.setPaymentMethod(cardDto.getFranchise());
+        token.setNumber(cardDto.getCardNumber());
+        token.setExpirationDate(YearMonth.parse(cardDto.getCardDate(), DateTimeFormatter.ofPattern("MM/yy"))
+                .format(DateTimeFormatter.ofPattern("yyyy/MM")));
+
+        request.setCreditCardToken(token);
+        return request;
+    }
+
     // funcion para generar la firma de la solicitud
     private static String generateSignature(String apiKey, String merchantId, String referenceCode, String value, String currency) {
         String raw = apiKey + "~" + merchantId + "~" + referenceCode + "~" + value + "~" + currency;

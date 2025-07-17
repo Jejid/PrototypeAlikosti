@@ -57,6 +57,20 @@ public class BuyerMapper {
     }
 
     // Model -> DTO
+    public BuyerDto toDto(Buyer buyer) {
+        if (buyer == null) return null;
+        BuyerDto dto = new BuyerDto();
+        dto.setId(buyer.getId());
+        dto.setName(buyer.getName());
+        dto.setSurname(buyer.getSurname());
+        dto.setBirthDate(buyer.getBirthDate());
+        dto.setEmail(buyer.getEmail());
+        dto.setCc(buyer.getCc());
+        //dto.setPassAccount(buyer.getPassAccount());
+        return dto;
+    }
+
+    // Model -> DTO
     public BuyerDto toPublicDto(Buyer buyer) {
         if (buyer == null) return null;
         BuyerDto dto = new BuyerDto();
@@ -103,6 +117,7 @@ public class BuyerMapper {
 
         return dao;
     }
+
     /*public BuyerDao parcialUpdateToDao2(BuyerDto dto, BuyerDao daoOrigin) {
         if (dto == null) return null;
 
