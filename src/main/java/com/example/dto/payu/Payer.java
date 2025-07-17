@@ -6,7 +6,6 @@ import lombok.Data;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Data
 public class Payer {
-    private String payerId;
     private String fullName;
     private String emailAddress;
     private String dniNumber;

@@ -226,7 +226,6 @@ public class PayuRequestBuilder {
         payer.setEmailAddress(buyerDto.getEmail());
         payer.setContactPhone(buyerDto.getPhone());
         payer.setDniNumber(buyerDto.getCc());
-        payer.setPayerId(String.valueOf(buyerDto.getId())); // importante para token
 
         BillingAddress billing = new BillingAddress();
         billing.setStreet1("Cr 23 No. 53-50");
