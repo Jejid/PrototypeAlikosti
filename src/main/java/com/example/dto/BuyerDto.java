@@ -28,4 +28,6 @@ public class BuyerDto {
 
     @NotBlank(message = "La contraseña es obligatoria")
     private String passAccount;
+
+    private String phone;
 }

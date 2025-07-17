@@ -53,7 +53,9 @@ public class PaymentService {
     public PaymentService(PaymentRepository paymentRepository, PaymentMapper paymentMapper, BuyerMapper buyerMapper, DeletionValidator validator,
                           CreditCardRepository creditCardRepository,
                           BuyerService buyerService, OrderProcessedService orderProcessedService1,
-                          ShoppingCartOrderService shoppingCartOrderService1, ProductRepository productRepository, ShoppingCartOrderRepository shoppingCartOrderRepository, PayuService payuService, OrderProcessedMapper orderProcessedMapper, CreditCardMapper creditCardMapper) {
+                          ShoppingCartOrderService shoppingCartOrderService1, ProductRepository productRepository,
+                          ShoppingCartOrderRepository shoppingCartOrderRepository, PayuService payuService, OrderProcessedMapper orderProcessedMapper,
+                          CreditCardMapper creditCardMapper) {
         this.paymentRepository = paymentRepository;
         this.paymentMapper = paymentMapper;
         this.buyerMapper = buyerMapper;

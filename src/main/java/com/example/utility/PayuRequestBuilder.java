@@ -54,11 +54,11 @@ public class PayuRequestBuilder {
 
         order.setAdditionalValues(additionalValue);
 
-        Buyer buyer = new Buyer();
-        buyer.setFullName(buyerDto.getName());
-        buyer.setEmailAddress(buyerDto.getEmail());
-        buyer.setContactPhone("7563126");
-        buyer.setDniNumber(buyerDto.getCc());
+        BuyerPayu buyerPayu = new BuyerPayu();
+        buyerPayu.setFullName(buyerDto.getName());
+        buyerPayu.setEmailAddress(buyerDto.getEmail());
+        buyerPayu.setContactPhone(buyerDto.getPhone());
+        buyerPayu.setDniNumber(buyerDto.getCc());
 
         ShippingAddress shipping = new ShippingAddress();
         shipping.setStreet1("Cr 23 No. 53-50");
@@ -67,8 +67,8 @@ public class PayuRequestBuilder {
         shipping.setCountry("CO");
         shipping.setPostalCode("000000");
         shipping.setPhone("7563126");
-        buyer.setShippingAddress(shipping);
-        order.setBuyer(buyer);
+        buyerPayu.setShippingAddress(shipping);
+        order.setBuyerPayu(buyerPayu);
 
         Transaction transaction = new Transaction();
         transaction.setOrder(order);
@@ -76,7 +76,7 @@ public class PayuRequestBuilder {
         Payer payer = new Payer();
         payer.setFullName(buyerDto.getName());
         payer.setEmailAddress(buyerDto.getEmail());
-        payer.setContactPhone("7563126");
+        payer.setContactPhone(buyerDto.getPhone());
         payer.setDniNumber(buyerDto.getCc());
 
         BillingAddress billing = new BillingAddress();
@@ -86,13 +86,13 @@ public class PayuRequestBuilder {
         payer.setBillingAddress(billing);
         transaction.setPayer(payer);
 
-        CreditCard card = new CreditCard();
+        CreditCardPayu card = new CreditCardPayu();
         card.setNumber(creditCardDto.getCardNumber());
         card.setSecurityCode(creditCardDto.getCvcCode());
         card.setExpirationDate(YearMonth.parse(creditCardDto.getCardDate(), DateTimeFormatter.ofPattern("MM/yy"))
                 .format(DateTimeFormatter.ofPattern("yyyy/MM")));
         card.setName("APPROVED");
-        transaction.setCreditCard(card);
+        transaction.setCreditCardPayu(card);
 
         transaction.setType("AUTHORIZATION_AND_CAPTURE");
         transaction.setPaymentMethod(creditCardDto.getFranchise());

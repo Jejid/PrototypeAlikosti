@@ -28,7 +28,7 @@ public interface PaymentRepository extends JpaRepository<PaymentDao, Integer> {
                 b.name AS nameBuyer,
                 SUM(p.total_order) AS totalSales
             FROM payment p
-            JOIN buyer b ON p.buyer_id = b.id
+            JOIN buyerPayu b ON p.buyer_id = b.id
             WHERE p.confirmation = 1 AND p.refunded = false
             GROUP BY p.buyer_id, b.name
             """, nativeQuery = true)

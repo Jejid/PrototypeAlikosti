@@ -25,6 +25,7 @@ public class BuyerMapper {
         model.setCc(dto.getCc());
         model.setEmail(dto.getEmail());
         model.setPassAccount(dto.getPassAccount());
+        model.setPhone(dto.getPhone());
         return model;
     }
 
@@ -39,6 +40,7 @@ public class BuyerMapper {
         dao.setCc(model.getCc());
         dao.setEmail(model.getEmail());
         dao.setPassAccount(model.getPassAccount());
+        dao.setPhone(model.getPhone());
         return dao;
     }
 
@@ -53,6 +55,7 @@ public class BuyerMapper {
         buyer.setCc(dao.getCc());
         buyer.setEmail(dao.getEmail());
         buyer.setPassAccount(dao.getPassAccount());
+        buyer.setPhone(dao.getPhone());
         return buyer;
     }
 
@@ -67,6 +70,7 @@ public class BuyerMapper {
         dto.setEmail(buyer.getEmail());
         dto.setCc(buyer.getCc());
         //dto.setPassAccount(buyer.getPassAccount());
+        dto.setPhone(buyer.getPhone());
         return dto;
     }
 
@@ -81,6 +85,7 @@ public class BuyerMapper {
         dto.setEmail(buyer.getEmail());
         dto.setCc("confidencial");
         dto.setPassAccount("**********");
+        dto.setPhone(buyer.getPhone());
         return dto;
     }
 
@@ -106,6 +111,9 @@ public class BuyerMapper {
                         break;
                     case "passAccount":
                         if (value == null || value instanceof String) dao.setPassAccount(((String) value));
+                        break;
+                    case "phone":
+                        if (value == null || value instanceof String) dao.setPhone(((String) value));
                         break;
                     default:
                         throw new IllegalArgumentException("El campo " + key + " no es válido o no existe para actualización.");

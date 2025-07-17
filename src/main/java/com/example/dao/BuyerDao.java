@@ -32,4 +32,6 @@ public class BuyerDao {
 
     @Column(name = "pass_account", length = 20, nullable = false)
     private String passAccount;
+
+    private String phone;
 }

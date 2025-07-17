@@ -1,5 +1,6 @@
 package com.example.dto.payu;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 @Data
@@ -10,6 +11,9 @@ public class Order {
     private String description;
     private String language = "es";
     private String signature;
-    private Buyer buyer;
+
+    @JsonProperty("buyer")
+    private BuyerPayu buyerPayu;
+
     private AdditionalValue additionalValues;
 }
