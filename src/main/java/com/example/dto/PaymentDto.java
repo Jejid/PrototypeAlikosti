@@ -17,18 +17,23 @@ public class PaymentDto {
     private int paymentMethodId;
 
     private int totalOrder;
-
     private String date;
-
     private int confirmation;
-
     private String codeConfirmation;
 
     private String cardNumber;
+    private String cvcCode;
+    private String tokenizedCode;
+    private String cardDate;
+    private String franchise;
+    private String cardName;
+    private String cardType;
+
 
     private boolean refunded = false;
 
     private String paymentGatewayOrderId;
-
     private String paymentGatewayTransactionId;
+
+
 }

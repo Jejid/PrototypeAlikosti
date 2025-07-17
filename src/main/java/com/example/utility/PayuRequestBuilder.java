@@ -92,7 +92,7 @@ public class PayuRequestBuilder {
         card.setExpirationDate(YearMonth.parse(creditCardDto.getCardDate(), DateTimeFormatter.ofPattern("MM/yy"))
                 .format(DateTimeFormatter.ofPattern("yyyy/MM")));
         card.setName("APPROVED");
-        transaction.setCreditCardPayu(card);
+        transaction.setCreditCard(card);
 
         transaction.setType("AUTHORIZATION_AND_CAPTURE");
         transaction.setPaymentMethod(creditCardDto.getFranchise());
@@ -161,6 +161,94 @@ public class PayuRequestBuilder {
                 .format(DateTimeFormatter.ofPattern("yyyy/MM")));
 
         request.setCreditCardToken(token);
+        return request;
+    }
+
+    public static PayuPaymentRequest buildPaymentWithToken(PaymentDto paymentDto, BuyerDto buyerDto, String tokenId, String CardCvcCode) {
+        PayuPaymentRequest request = new PayuPaymentRequest();
+        request.setTest(true);
+        request.setCommand("SUBMIT_TRANSACTION");
+        request.setLanguage("es");
+
+        Merchant merchant = new Merchant();
+        merchant.setApiKey(API_KEY);
+        merchant.setApiLogin(API_LOGIN);
+        request.setMerchant(merchant);
+
+        String referenceCode = "TOKEN_PAYMENT_" + System.currentTimeMillis();
+        String value = String.valueOf(paymentDto.getTotalOrder());
+        String signature = generateSignature(API_KEY, MERCHANT_ID, referenceCode, value, CURRENCY);
+
+        Order order = new Order();
+        order.setAccountId(ACCOUNT_ID);
+        order.setReferenceCode(referenceCode);
+        order.setDescription("Tokenized card payment");
+        order.setLanguage("es");
+        order.setSignature(signature);
+
+        AdditionalValue additionalValue = new AdditionalValue();
+        AdditionalValue.Amount txValue = new AdditionalValue.Amount();
+        txValue.setValue(value);
+        txValue.setCurrency(CURRENCY);
+        additionalValue.setTX_VALUE(txValue);
+
+        AdditionalValue.Amount txTax = new AdditionalValue.Amount();
+        txTax.setValue(String.valueOf(Integer.parseInt(value) * 0.19));
+        txTax.setCurrency(CURRENCY);
+        additionalValue.setTX_TAX(txTax);
+
+        order.setAdditionalValues(additionalValue);
+
+        BuyerPayu buyerPayu = new BuyerPayu();
+        buyerPayu.setFullName(buyerDto.getName());
+        buyerPayu.setEmailAddress(buyerDto.getEmail());
+        buyerPayu.setContactPhone(buyerDto.getPhone());
+        buyerPayu.setDniNumber(buyerDto.getCc());
+
+        CreditCardPayu creditCardPayu = new CreditCardPayu();
+        creditCardPayu.setSecurityCode(CardCvcCode);
+
+        ShippingAddress shipping = new ShippingAddress();
+        shipping.setStreet1("Cr 23 No. 53-50");
+        shipping.setCity("Bogotá");
+        shipping.setState("Bogotá D.C.");
+        shipping.setCountry("CO");
+        shipping.setPostalCode("000000");
+        shipping.setPhone("7563126");
+        buyerPayu.setShippingAddress(shipping);
+        order.setBuyerPayu(buyerPayu);
+
+        Transaction transaction = new Transaction();
+        transaction.setOrder(order);
+
+        Payer payer = new Payer();
+        payer.setFullName(buyerDto.getName());
+        payer.setEmailAddress(buyerDto.getEmail());
+        payer.setContactPhone(buyerDto.getPhone());
+        payer.setDniNumber(buyerDto.getCc());
+        payer.setPayerId(String.valueOf(buyerDto.getId())); // importante para token
+
+        BillingAddress billing = new BillingAddress();
+        billing.setStreet1("Cr 23 No. 53-50");
+        billing.setCity("Bogotá");
+        billing.setCountry("CO");
+        payer.setBillingAddress(billing);
+        transaction.setPayer(payer);
+
+        // Aquí usamos el token
+        transaction.setCreditCardTokenId(tokenId);
+        // Aquí agregamos el código de seguridad y tarjeta a la solcitud JSON
+        transaction.setCreditCard(creditCardPayu);
+
+        transaction.setType("AUTHORIZATION_AND_CAPTURE");
+        transaction.setPaymentMethod(paymentDto.getFranchise()); // importante: debe coincidir con la franquicia del token
+        transaction.setPaymentCountry("CO");
+        transaction.setDeviceSessionId("vghs6tvkcle931686k1900o6e1");
+        transaction.setIpAddress("127.0.0.1");
+        transaction.setCookie("pt1t38347bs6jc9ruv2ecpv7o2");
+        transaction.setUserAgent("Mozilla/5.0 (Windows NT 5.1; rv:18.0) Gecko/20100101 Firefox/18.0");
+
+        request.setTransaction(transaction);
         return request;
     }
 

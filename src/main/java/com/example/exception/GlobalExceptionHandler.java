@@ -33,7 +33,7 @@ public class GlobalExceptionHandler {
         response.put("message", ex.getMessage());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
-    
+
     @ExceptionHandler(IllegalStateException.class)
     public ResponseEntity<Map<String, String>> handleIllegalStateException(IllegalStateException ex) {
         Map<String, String> response = new HashMap<>();
@@ -87,8 +87,6 @@ public class GlobalExceptionHandler {
             response.put("error", "el ID de metodo de pago especificado no existe.");
         } else if (message.contains("fk_payment_buyer")) {
             response.put("error", "el ID de comprador especificado no existe.");
-        } else if (message.contains("check_paymentmethod_creditcard")) {
-            response.put("error", "Si no es método tarjeta deja vacío el campo número de tarjeta. Si es método tarjeta debes llenar el campo número de tarjeta.");
         } else if (message.contains("check_code_confirmation_not_null")) {
             response.put("error", "Al aprobarse el pago confirmation=1, el código de confirmación debe agregarse, no puede ser nulo");
 

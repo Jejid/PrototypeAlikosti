@@ -14,6 +14,7 @@ import com.example.mapper.BuyerMapper;
 import com.example.mapper.CreditCardMapper;
 import com.example.mapper.OrderProcessedMapper;
 import com.example.mapper.PaymentMapper;
+import com.example.model.Buyer;
 import com.example.model.Payment;
 import com.example.model.ShoppingCartOrder;
 import com.example.repository.CreditCardRepository;
@@ -49,13 +50,16 @@ public class PaymentService {
     private final PayuService payuService;
     private final OrderProcessedMapper orderProcessedMapper;
     private final CreditCardMapper creditCardMapper;
+    private final CreditCardService creditCardService;
+
+    public static final int PAYMENT_METHOD_CARD = 2;
 
     public PaymentService(PaymentRepository paymentRepository, PaymentMapper paymentMapper, BuyerMapper buyerMapper, DeletionValidator validator,
                           CreditCardRepository creditCardRepository,
                           BuyerService buyerService, OrderProcessedService orderProcessedService1,
                           ShoppingCartOrderService shoppingCartOrderService1, ProductRepository productRepository,
                           ShoppingCartOrderRepository shoppingCartOrderRepository, PayuService payuService, OrderProcessedMapper orderProcessedMapper,
-                          CreditCardMapper creditCardMapper) {
+                          CreditCardMapper creditCardMapper, CreditCardService creditCardService) {
         this.paymentRepository = paymentRepository;
         this.paymentMapper = paymentMapper;
         this.buyerMapper = buyerMapper;
@@ -69,6 +73,7 @@ public class PaymentService {
         this.payuService = payuService;
         this.orderProcessedMapper = orderProcessedMapper;
         this.creditCardMapper = creditCardMapper;
+        this.creditCardService = creditCardService;
     }
 
     public List<Payment> getPaymentByBuyerId(Integer id) {
@@ -81,7 +86,8 @@ public class PaymentService {
     @Transactional
     public Payment createPayment(PaymentDto paymentDto) {
         // 1. Verificar que el comprador y orden existan
-        buyerService.getBuyerById(paymentDto.getBuyerId());
+        Buyer buyer = buyerService.getBuyerById(paymentDto.getBuyerId());
+        BuyerDto buyerDto = buyerMapper.toDto(buyer);
         List<ShoppingCartOrder> shoppingCartOrderList = shoppingCartOrderService.getOrderByBuyerId(paymentDto.getBuyerId());
 
         // 2. Calcular el total real desde BD
@@ -108,15 +114,38 @@ public class PaymentService {
         updateStock(orderList, "decrease");
 
         // 6. Procesar pago con tarjeta (PayU)
-        if (paymentDto.getPaymentMethodId() == 2 && paymentDto.getCardNumber() != null) {
-            BuyerDto buyerDto = buyerMapper.toPublicDto(buyerService.getBuyerById(paymentDto.getBuyerId()));
+        if (paymentDto.getPaymentMethodId() == PAYMENT_METHOD_CARD) {
 
-            CreditCardDto creditCardDto = creditCardRepository.findByCardNumberAndBuyerId(
-                            paymentDto.getCardNumber(), paymentDto.getBuyerId())
-                    .map(creditCardMapper::toDto)
-                    .orElseThrow(() -> new BadRequestException("Tarjeta no válida, agrega tarjeta"));
+            PayuPaymentRequest payuRequest = new PayuPaymentRequest();
 
-            PayuPaymentRequest payuRequest = PayuRequestBuilder.buildPayment(paymentDto, buyerDto, creditCardDto);
+            //6.1 agregar tarjeta nueva sin token
+            if ((paymentDto.getCardNumber() != null && paymentDto.getCvcCode() != null && paymentDto.getCardDate() != null && paymentDto.getTokenizedCode() == null)) {
+                buyerDto = buyerMapper.toPublicDto(buyer);
+
+                //asignamos los datos de tarjeta traidos desde la interfaz de pago
+                CreditCardDto creditCardDto = new CreditCardDto();
+                creditCardDto.setBuyerId(paymentDto.getBuyerId());
+                creditCardDto.setCardNumber(paymentDto.getCardNumber());
+                creditCardDto.setName(paymentDto.getCardName());
+                creditCardDto.setCardDate(paymentDto.getCardDate());
+                creditCardDto.setCvcCode(paymentDto.getCvcCode());
+                creditCardDto.setFranchise(paymentDto.getFranchise());
+                creditCardDto.setCardType(paymentDto.getCardType());
+
+                //crear tarjeta
+                creditCardService.createCreditCard(creditCardDto);
+
+                payuRequest = PayuRequestBuilder.buildPayment(paymentDto, buyerDto, creditCardDto);
+            }
+            //6.2 pago con token de tarjeta
+            else if ((paymentDto.getCardNumber() == null && paymentDto.getTokenizedCode() != null && paymentDto.getCvcCode() != null)) {
+                buyerDto = buyerMapper.toDto(buyer);
+                payuRequest = PayuRequestBuilder.buildPaymentWithToken(paymentDto, buyerDto, paymentDto.getTokenizedCode(), paymentDto.getCvcCode());
+            } else
+                throw new BadRequestException(" Para pago con token de tarjet debes ingresar: el token y el cvc.\n" +
+                        "Para pago con solo tarjeta debe ingresar: el número de tarjeta, la fecha de expiración y el código de seguridad.");
+
+
             Map<String, Object> payuResponse = payuService.sendPaymentTransaction(payuRequest);
 
             @SuppressWarnings("unchecked")
@@ -130,7 +159,6 @@ public class PaymentService {
             } catch (Exception e) {
                 System.out.println("❌ Error al serializar la respuesta de PayU a JSON: " + e.getMessage());
             }
-
 
             if (txResponse == null) {
                 throw new PayuTransactionException("No se recibió respuesta de transacción desde PayU. Detalles: " + payuResponse);
@@ -198,7 +226,6 @@ public class PaymentService {
             throw new IllegalArgumentException("Estado inválido: " + state);
         }
     }
-
 
     // ------- Métodos Basicos-------//
     public List<Payment> getAllPayments() {
