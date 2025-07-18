@@ -27,7 +27,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
@@ -95,7 +95,7 @@ public class PaymentService {
         paymentDto.setTotalOrder(totalOrder != null ? totalOrder : 0);
 
         // 3. Inicializar campos comunes
-        paymentDto.setDate(LocalDate.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
+        paymentDto.setDate(LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy hh:mm:ss a")));
         paymentDto.setRefunded(false);
         paymentDto.setConfirmation(0);
         paymentDto.setCodeConfirmation(null);
@@ -120,7 +120,6 @@ public class PaymentService {
 
             //6.1 agregar tarjeta nueva sin token
             if ((paymentDto.getCardNumber() != null && paymentDto.getCvcCode() != null && paymentDto.getCardDate() != null && paymentDto.getTokenizedCode() == null)) {
-                buyerDto = buyerMapper.toPublicDto(buyer);
 
                 //asignamos los datos de tarjeta traidos desde la interfaz de pago
                 CreditCardDto creditCardDto = new CreditCardDto();
@@ -131,19 +130,20 @@ public class PaymentService {
                 creditCardDto.setCvcCode(paymentDto.getCvcCode());
                 creditCardDto.setFranchise(paymentDto.getFranchise());
                 creditCardDto.setCardType(paymentDto.getCardType());
+                creditCardDto.setBank(paymentDto.getBank());
 
-                //crear tarjeta
+                //guardar tajerta y su token
                 creditCardService.createCreditCard(creditCardDto);
 
                 payuRequest = PayuRequestBuilder.buildPayment(paymentDto, buyerDto, creditCardDto);
             }
             //6.2 pago con token de tarjeta
             else if ((paymentDto.getCardNumber() == null && paymentDto.getTokenizedCode() != null && paymentDto.getCvcCode() != null)) {
-                buyerDto = buyerMapper.toDto(buyer);
                 payuRequest = PayuRequestBuilder.buildPaymentWithToken(paymentDto, buyerDto, paymentDto.getTokenizedCode(), paymentDto.getCvcCode());
+                paymentDto.setCardNumber(paymentDto.getTokenizedCode());
             } else
-                throw new BadRequestException(" Para pago con token de tarjet debes ingresar: el token y el cvc.\n" +
-                        "Para pago con solo tarjeta debe ingresar: el número de tarjeta, la fecha de expiración y el código de seguridad.");
+                throw new BadRequestException("Para pago con token de tarjet debes ingresar: el token y el código de seguridad cvc." +
+                        " Para pago con tarjeta directa debe ingresar: el número de tarjeta, la fecha de expiración y el código de seguridad cvc.");
 
 
             Map<String, Object> payuResponse = payuService.sendPaymentTransaction(payuRequest);
@@ -161,7 +161,7 @@ public class PaymentService {
             }
 
             if (txResponse == null) {
-                throw new PayuTransactionException("No se recibió respuesta de transacción desde PayU. Detalles: " + payuResponse);
+                throw new PayuTransactionException("Error en respuesta de transacción desde PayU. Detalles: " + payuResponse);
             }
             String state = (String) txResponse.get("state");
 
@@ -175,7 +175,8 @@ public class PaymentService {
             } else {
                 throw new PayuTransactionException("Estado desconocido: " + state);
             }
-        }
+        } else
+            paymentDto.setCardNumber(null); // Esto para evitar guardar numero de tarjeta ingresados en front si es pago metodo sin tarjeta
 
         // 7. Guardar el pago
         Payment savedPayment = paymentMapper.toModel(

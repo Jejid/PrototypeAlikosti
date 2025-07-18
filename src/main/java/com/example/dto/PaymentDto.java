@@ -1,11 +1,13 @@
 package com.example.dto;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 
 @Setter
 @Getter
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class PaymentDto {
 
     private int id;
@@ -28,6 +30,7 @@ public class PaymentDto {
     private String franchise;
     private String cardName;
     private String cardType;
+    private String bank;
 
 
     private boolean refunded = false;

@@ -77,8 +77,16 @@ public class PaymentMapper {
         dto.setDate(model.getDate());
         dto.setConfirmation(model.getConfirmation());
         dto.setCodeConfirmation(model.getCodeConfirmation());
-        dto.setCardNumber(model.getCardNumber() == null ? "No fue con metodo de pago tarjeta" : "**** **** **** " + model.getCardNumber().substring(model.getCardNumber().length() - 4));
+
+        if (model.getCardNumber() != null)
+            if (model.getCardNumber().length() < 20)
+                dto.setCardNumber("**** **** **** " + model.getCardNumber().substring(model.getCardNumber().length() - 4));
+            else
+                dto.setCardNumber(model.getPaymentGatewayOrderId() == null ? null : "Token de tarjeta: ***...***" + model.getCardNumber().substring(model.getCardNumber().length() - 6));
+
         dto.setRefunded(model.isRefunded());
+        dto.setPaymentGatewayOrderId(model.getPaymentGatewayOrderId());
+        dto.setPaymentGatewayTransactionId(model.getPaymentGatewayTransactionId());
         return dto;
     }
 

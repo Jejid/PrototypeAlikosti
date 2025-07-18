@@ -114,7 +114,7 @@ public class GlobalExceptionHandler {
 
             // de credit_card
         } else if (message.contains("idx_unique_card_for_buyer")) {
-            response.put("error", "Ya existe una tarjeta con ese número registrada para este comprador.");
+            response.put("error", "Ya hay una tarjeta tokenizada para ese comprador, usa su toke o ingresa una nueva tarjeta");
         } else if (message.contains("fk_buyer_creditcard")) {
             response.put("error", "el ID de comprador especificado no existe.");
 
