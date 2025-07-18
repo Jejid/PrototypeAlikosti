@@ -207,9 +207,6 @@ public class PaymentService {
         if (dao.getConfirmation() != 0)
             throw new BadRequestException("Ese pago ya ha sido procesado (estado: " + dao.getConfirmation() + ")");
 
-        if (state == 0)
-            throw new BadRequestException("El estado: 0 no es válido. Usa 1 (aprobado) o 2 (rechazado)");
-
         if (state == 1) {
             dao.setConfirmation(1);
             dao.setCodeConfirmation(String.valueOf(ThreadLocalRandom.current().nextInt(1000, 9999)));
@@ -224,7 +221,7 @@ public class PaymentService {
 
             return "Rechazado manualmente";
         } else {
-            throw new IllegalArgumentException("Estado inválido: " + state);
+            throw new IllegalArgumentException("El estado: " + state + " no es válido (1: aprobado, 2: rechazado)");
         }
     }
 

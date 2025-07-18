@@ -44,52 +44,6 @@ public class RequestRefundService {
         this.payuService = payuService;
     }
 
-    public String confirmRefundById(Integer refundId, Integer state) {
-        RequestRefundDao refundDao = requestRefundRepository.findById(refundId)
-                .orElseThrow(() -> new EntityNotFoundException("Reembolso con ID: " + refundId + " no encontrado"));
-
-        int currentConfirmation = refundDao.getConfirmation();
-
-        if (currentConfirmation == 1)
-            throw new BadRequestException("Ese reembolso ya había sido aprobado y no se puede cambiar");
-
-        if (currentConfirmation == 2)
-            throw new BadRequestException("Ese reembolso ya había sido rechazado y no se puede cambiar");
-
-        if (state == 0)
-            throw new BadRequestException("El estado 0 no es válido porque indica que sigue pendiente");
-
-        if (state == 1) {
-            refundDao.setConfirmation(1);
-
-            PaymentDao paymentDao = paymentRepository.findById(refundDao.getPaymentId())
-                    .orElseThrow(() -> new EntityNotFoundException("Pago no encontrado con ID: " + refundDao.getPaymentId()));
-
-            paymentDao.setRefunded(true);
-            paymentRepository.save(paymentDao);
-
-            //Si es tipo 2 devolvemos stock
-            if (refundDao.getRefundType() == 2) {
-                orderProcessedService.getOrdersByPaymentId(refundDao.getPaymentId()).forEach(order -> {
-                    ProductDao product = productRepository.findById(order.getProductId())
-                            .orElseThrow(() -> new EntityNotFoundException("Producto no encontrado con ID: " + order.getProductId()));
-                    product.setStock(product.getStock() + order.getUnits());
-                    productRepository.save(product);
-                });
-            }
-
-            requestRefundRepository.save(refundDao);
-            return "Aprobado";
-        }
-
-        if (state == 2) {
-            refundDao.setConfirmation(2);
-            requestRefundRepository.save(refundDao);
-            return "Rechazado";
-        }
-
-        throw new IllegalArgumentException("El estado: " + state + " no es válido (1: aprobado, 2: rechazado)");
-    }
 
     public List<RequestRefund> getAllRequestRefunds() {
         List<RequestRefundDao> refundListDao = requestRefundRepository.findAll();
@@ -115,6 +69,7 @@ public class RequestRefundService {
         if (paymentDao.isRefunded())
             throw new IllegalArgumentException("Este pago ya fue reembolsado, no puedes solicitar otro reembolso.");
 
+        // tipo 1: inmediato recuperación stock (con PayU) tipo 2: no inmediato pero con recuperación de stock tipo 3 o mas: No recuperación de stock
         if (refundDto.getRefundType() == 1) {
             // Validar existencia de IDs para PayU
             String orderId = paymentDao.getPaymentGatewayOrderId();
@@ -178,10 +133,53 @@ public class RequestRefundService {
         );
     }
 
+    public String confirmRefundById(Integer refundId, Integer state) {
+        RequestRefundDao refundDao = requestRefundRepository.findById(refundId)
+                .orElseThrow(() -> new EntityNotFoundException("Reembolso con ID: " + refundId + " no encontrado"));
+
+        int currentConfirmation = refundDao.getConfirmation();
+
+        if (currentConfirmation == 1)
+            throw new BadRequestException("Ese reembolso ya había sido aprobado y no se puede cambiar");
+
+        if (currentConfirmation == 2)
+            throw new BadRequestException("Ese reembolso ya había sido rechazado y no se puede cambiar");
+
+        if (state == 1) {
+            refundDao.setConfirmation(1);
+
+            PaymentDao paymentDao = paymentRepository.findById(refundDao.getPaymentId())
+                    .orElseThrow(() -> new EntityNotFoundException("Pago no encontrado con ID: " + refundDao.getPaymentId()));
+
+            paymentDao.setRefunded(true);
+            paymentRepository.save(paymentDao);
+
+            // tipo 1: inmediato recuperación stock (con PayU) tipo 2: no inmediato pero con recuperación de stock tipo 3 o mas: No recuperación de stock
+            if (refundDao.getRefundType() == 2) {
+                orderProcessedService.getOrdersByPaymentId(refundDao.getPaymentId()).forEach(order -> {
+                    ProductDao product = productRepository.findById(order.getProductId())
+                            .orElseThrow(() -> new EntityNotFoundException("Producto no encontrado con ID: " + order.getProductId()));
+                    product.setStock(product.getStock() + order.getUnits());
+                    productRepository.save(product);
+                });
+            }
+
+            requestRefundRepository.save(refundDao);
+            return "Aprobado manualmente";
+        }
+
+        if (state == 2) {
+            refundDao.setConfirmation(2);
+            requestRefundRepository.save(refundDao);
+            return "Rechazado manualmente";
+        }
+
+        throw new IllegalArgumentException("El estado: " + state + " no es válido (1: aprobado, 2: rechazado)");
+    }
+
     public void deleteRequestRefund(Integer id) {
         if (!requestRefundRepository.existsById(id))
             throw new EntityNotFoundException("Solicitud de reembolso con ID: " + id + ", no encontrada");
-        //validator.deletionValidatorRequestRefund(id); // No se requiere por ahora
         requestRefundRepository.deleteById(id);
     }
 
