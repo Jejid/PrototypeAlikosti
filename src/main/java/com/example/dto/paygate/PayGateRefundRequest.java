@@ -1,9 +1,9 @@
-package com.example.dto.payu;
+package com.example.dto.paygate;
 
 import lombok.Data;
 
 @Data
-public class PayuRefundRequest {
+public class PayGateRefundRequest {
     private String language = "es";
     private String command = "SUBMIT_TRANSACTION";
     private boolean test = true;

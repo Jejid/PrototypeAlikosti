@@ -1,6 +1,6 @@
 package com.example.model;
 
-import com.example.dto.payu.ShippingAddress;
+import com.example.dto.paygate.ShippingAddress;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

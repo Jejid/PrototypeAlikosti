@@ -3,14 +3,14 @@ package com.example.utility;
 import com.example.dto.BuyerDto;
 import com.example.dto.CreditCardDto;
 import com.example.dto.PaymentDto;
-import com.example.dto.payu.*;
+import com.example.dto.paygate.*;
 import org.springframework.util.DigestUtils;
 
 import java.nio.charset.StandardCharsets;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 
-public class PayuRequestBuilder {
+public class PayGateRequestBuilder {
 
     private static final String API_KEY = "4Vj8eK4rloUd272L48hsrarnUA"; // sandbox
     private static final String API_LOGIN = "pRRXKOl8ikMmt9u";           // sandbox
@@ -19,8 +19,8 @@ public class PayuRequestBuilder {
     private static final String CURRENCY = "COP";
 
     // ✅ Funcion para construir solicitud de pago
-    public static PayuPaymentRequest buildPayment(PaymentDto paymentDto, BuyerDto buyerDto, CreditCardDto creditCardDto) {
-        PayuPaymentRequest request = new PayuPaymentRequest();
+    public static PayGatePaymentRequest buildPayment(PaymentDto paymentDto, BuyerDto buyerDto, CreditCardDto creditCardDto) {
+        PayGatePaymentRequest request = new PayGatePaymentRequest();
         request.setTest(true);
         request.setCommand("SUBMIT_TRANSACTION");
         request.setLanguage("es");
@@ -54,11 +54,11 @@ public class PayuRequestBuilder {
 
         order.setAdditionalValues(additionalValue);
 
-        BuyerPayu buyerPayu = new BuyerPayu();
-        buyerPayu.setFullName(buyerDto.getName());
-        buyerPayu.setEmailAddress(buyerDto.getEmail());
-        buyerPayu.setContactPhone(buyerDto.getPhone());
-        buyerPayu.setDniNumber(buyerDto.getCc());
+        BuyerPayGate buyerPayGate = new BuyerPayGate();
+        buyerPayGate.setFullName(buyerDto.getName());
+        buyerPayGate.setEmailAddress(buyerDto.getEmail());
+        buyerPayGate.setContactPhone(buyerDto.getPhone());
+        buyerPayGate.setDniNumber(buyerDto.getCc());
 
         ShippingAddress shipping = new ShippingAddress();
         shipping.setStreet1("Cr 23 No. 53-50");
@@ -67,8 +67,8 @@ public class PayuRequestBuilder {
         shipping.setCountry("CO");
         shipping.setPostalCode("000000");
         shipping.setPhone("7563126");
-        buyerPayu.setShippingAddress(shipping);
-        order.setBuyerPayu(buyerPayu);
+        buyerPayGate.setShippingAddress(shipping);
+        order.setBuyerPayGate(buyerPayGate);
 
         Transaction transaction = new Transaction();
         transaction.setOrder(order);
@@ -86,7 +86,7 @@ public class PayuRequestBuilder {
         payer.setBillingAddress(billing);
         transaction.setPayer(payer);
 
-        CreditCardPayu card = new CreditCardPayu();
+        CreditCardPayGate card = new CreditCardPayGate();
         card.setNumber(creditCardDto.getCardNumber());
         card.setSecurityCode(creditCardDto.getCvcCode());
         card.setExpirationDate(YearMonth.parse(creditCardDto.getCardDate(), DateTimeFormatter.ofPattern("MM/yy"))
@@ -107,8 +107,8 @@ public class PayuRequestBuilder {
     }
 
     // ✅ Funcion para construir solicitud de reembolso
-    public static PayuRefundRequest buildRefund(String orderId, String parentTransactionId, String reason, Double partialAmount) {
-        PayuRefundRequest request = new PayuRefundRequest();
+    public static PayGateRefundRequest buildRefund(String orderId, String parentTransactionId, String reason, Double partialAmount) {
+        PayGateRefundRequest request = new PayGateRefundRequest();
         request.setTest(true);
         request.setLanguage("es");
         request.setCommand("SUBMIT_TRANSACTION");
@@ -141,8 +141,8 @@ public class PayuRequestBuilder {
         return request;
     }
 
-    public static PayuTokenRequest buildTokenRequest(BuyerDto buyerDto, CreditCardDto cardDto) {
-        PayuTokenRequest request = new PayuTokenRequest();
+    public static PayGateTokenRequest buildTokenRequest(BuyerDto buyerDto, CreditCardDto cardDto) {
+        PayGateTokenRequest request = new PayGateTokenRequest();
         request.setLanguage("es");
         request.setCommand("CREATE_TOKEN");
 
@@ -164,8 +164,8 @@ public class PayuRequestBuilder {
         return request;
     }
 
-    public static PayuPaymentRequest buildPaymentWithToken(PaymentDto paymentDto, BuyerDto buyerDto, String tokenId, String CardCvcCode) {
-        PayuPaymentRequest request = new PayuPaymentRequest();
+    public static PayGatePaymentRequest buildPaymentWithToken(PaymentDto paymentDto, BuyerDto buyerDto, String tokenId, String CardCvcCode) {
+        PayGatePaymentRequest request = new PayGatePaymentRequest();
         request.setTest(true);
         request.setCommand("SUBMIT_TRANSACTION");
         request.setLanguage("es");
@@ -199,14 +199,14 @@ public class PayuRequestBuilder {
 
         order.setAdditionalValues(additionalValue);
 
-        BuyerPayu buyerPayu = new BuyerPayu();
-        buyerPayu.setFullName(buyerDto.getName());
-        buyerPayu.setEmailAddress(buyerDto.getEmail());
-        buyerPayu.setContactPhone(buyerDto.getPhone());
-        buyerPayu.setDniNumber(buyerDto.getCc());
+        BuyerPayGate buyerPayGate = new BuyerPayGate();
+        buyerPayGate.setFullName(buyerDto.getName());
+        buyerPayGate.setEmailAddress(buyerDto.getEmail());
+        buyerPayGate.setContactPhone(buyerDto.getPhone());
+        buyerPayGate.setDniNumber(buyerDto.getCc());
 
-        CreditCardPayu creditCardPayu = new CreditCardPayu();
-        creditCardPayu.setSecurityCode(CardCvcCode);
+        CreditCardPayGate creditCardPayGate = new CreditCardPayGate();
+        creditCardPayGate.setSecurityCode(CardCvcCode);
 
         ShippingAddress shipping = new ShippingAddress();
         shipping.setStreet1("Cr 23 No. 53-50");
@@ -215,8 +215,8 @@ public class PayuRequestBuilder {
         shipping.setCountry("CO");
         shipping.setPostalCode("000000");
         shipping.setPhone("7563126");
-        buyerPayu.setShippingAddress(shipping);
-        order.setBuyerPayu(buyerPayu);
+        buyerPayGate.setShippingAddress(shipping);
+        order.setBuyerPayGate(buyerPayGate);
 
         Transaction transaction = new Transaction();
         transaction.setOrder(order);
@@ -237,7 +237,7 @@ public class PayuRequestBuilder {
         // Aquí usamos el token
         transaction.setCreditCardTokenId(tokenId);
         // Aquí agregamos el código de seguridad y tarjeta a la solcitud JSON
-        transaction.setCreditCard(creditCardPayu);
+        transaction.setCreditCard(creditCardPayGate);
 
         transaction.setType("AUTHORIZATION_AND_CAPTURE");
         transaction.setPaymentMethod(paymentDto.getFranchise()); // importante: debe coincidir con la franquicia del token

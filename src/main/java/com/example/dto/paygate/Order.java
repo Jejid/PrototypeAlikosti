@@ -1,4 +1,4 @@
-package com.example.dto.payu;
+package com.example.dto.paygate;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -15,6 +15,6 @@ public class Order {
     private String signature;
 
     @JsonProperty("buyer")
-    private BuyerPayu buyerPayu;
+    private BuyerPayGate buyerPayGate;
     private AdditionalValue additionalValues;
 }

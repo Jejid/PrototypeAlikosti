@@ -1,4 +1,4 @@
-package com.example.dto.payu;
+package com.example.dto.paygate;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;

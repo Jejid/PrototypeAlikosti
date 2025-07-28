@@ -4,16 +4,16 @@ import com.example.dao.PaymentDao;
 import com.example.dao.ProductDao;
 import com.example.dao.RequestRefundDao;
 import com.example.dto.RequestRefundDto;
-import com.example.dto.payu.PayuRefundRequest;
+import com.example.dto.paygate.PayGateRefundRequest;
 import com.example.exception.BadRequestException;
 import com.example.exception.EntityNotFoundException;
-import com.example.exception.PayuTransactionException;
+import com.example.exception.PayGateTransactionException;
 import com.example.mapper.RequestRefundMapper;
 import com.example.model.RequestRefund;
 import com.example.repository.PaymentRepository;
 import com.example.repository.ProductRepository;
 import com.example.repository.RequestRefundRepository;
-import com.example.utility.PayuRequestBuilder;
+import com.example.utility.PayGateRequestBuilder;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
@@ -31,17 +31,17 @@ public class RequestRefundService {
     private final ProductRepository productRepository;
     private final OrderProcessedService orderProcessedService;
     private final PaymentRepository paymentRepository;
-    private final PayuService payuService;
+    private final PayGateService payGateService;
 
     public RequestRefundService(RequestRefundRepository requestRefundRepository, RequestRefundMapper requestRefundMapper,
                                 ProductRepository productRepository, OrderProcessedService orderProcessedService,
-                                PaymentRepository paymentRepository, PayuService payuService) {
+                                PaymentRepository paymentRepository, PayGateService payGateService) {
         this.requestRefundRepository = requestRefundRepository;
         this.requestRefundMapper = requestRefundMapper;
         this.productRepository = productRepository;
         this.orderProcessedService = orderProcessedService;
         this.paymentRepository = paymentRepository;
-        this.payuService = payuService;
+        this.payGateService = payGateService;
     }
 
 
@@ -69,41 +69,41 @@ public class RequestRefundService {
         if (paymentDao.isRefunded())
             throw new IllegalArgumentException("Este pago ya fue reembolsado, no puedes solicitar otro reembolso.");
 
-        // tipo 1: inmediato recuperación stock (con PayU) tipo 2: no inmediato pero con recuperación de stock tipo 3 o mas: No recuperación de stock
+        // tipo 1: inmediato recuperación stock (con PayGate) tipo 2: no inmediato pero con recuperación de stock tipo 3 o mas: No recuperación de stock
         if (refundDto.getRefundType() == 1) {
-            // Validar existencia de IDs para PayU
+            // Validar existencia de ID para PayGate
             String orderId = paymentDao.getPaymentGatewayOrderId();
             String transactionId = paymentDao.getPaymentGatewayTransactionId();
 
             if (orderId == null || transactionId == null)
-                throw new PayuTransactionException("Este pago no tiene IDs válidos de PayU para reembolso.");
+                throw new PayGateTransactionException("Este pago no tiene IDs válidos de PayGate para reembolso.");
 
             // Construir y enviar solicitud
-            PayuRefundRequest refundRequest = PayuRequestBuilder.buildRefund(orderId, transactionId, refundDto.getReason(), null);
-            Map<String, Object> response = payuService.sendRefundTransaction(refundRequest);
+            PayGateRefundRequest refundRequest = PayGateRequestBuilder.buildRefund(orderId, transactionId, refundDto.getReason(), null);
+            Map<String, Object> response = payGateService.sendRefundTransaction(refundRequest);
 
             String responseCode = (String) response.get("code");
             if ("ERROR".equalsIgnoreCase(responseCode)) {
-                throw new PayuTransactionException("Error en PayU: " + response.getOrDefault("error", "Mensaje no disponible"));
+                throw new PayGateTransactionException("Error en PayGate: " + response.getOrDefault("error", "Mensaje no disponible"));
             }
 
             @SuppressWarnings("unchecked")
             Map<String, Object> txResponse = (Map<String, Object>) response.get("transactionResponse");
             if (txResponse == null)
-                throw new PayuTransactionException("Respuesta inválida: transactionResponse es null. Respuesta completa: " + response);
+                throw new PayGateTransactionException("Respuesta inválida: transactionResponse es null. Respuesta completa: " + response);
 
             // Imprimir la respuesta completa como JSON
             try {
                 ObjectMapper mapper = new ObjectMapper();
                 String json = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(response);
-                System.out.println("📥 Respuesta de PayU (refund):\n" + json);
+                System.out.println("📥 Respuesta de PayGate (refund):\n" + json);
             } catch (JsonProcessingException e) {
-                System.out.println("❌ Error al serializar la respuesta de PayU: " + e.getMessage());
+                System.out.println("❌ Error al serializar la respuesta de PayGate: " + e.getMessage());
             }
 
             String state = (String) txResponse.get("state");
             if (!"APPROVED".equalsIgnoreCase(state) && !"PENDING".equalsIgnoreCase(state))
-                throw new PayuTransactionException("Reembolso fallido. Estado recibido: " + state);
+                throw new PayGateTransactionException("Reembolso fallido. Estado recibido: " + state);
 
             if ("PENDING".equalsIgnoreCase(state)) {
                 String reason = (String) txResponse.getOrDefault("pendingReason", "No especificado");
@@ -154,7 +154,7 @@ public class RequestRefundService {
             paymentDao.setRefunded(true);
             paymentRepository.save(paymentDao);
 
-            // tipo 1: inmediato recuperación stock (con PayU) tipo 2: no inmediato pero con recuperación de stock tipo 3 o mas: No recuperación de stock
+            // tipo 1: inmediato recuperación stock (con PayGate) tipo 2: no inmediato pero con recuperación de stock tipo 3 o mas: No recuperación de stock
             if (refundDao.getRefundType() == 2) {
                 orderProcessedService.getOrdersByPaymentId(refundDao.getPaymentId()).forEach(order -> {
                     ProductDao product = productRepository.findById(order.getProductId())

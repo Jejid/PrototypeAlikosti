@@ -6,10 +6,10 @@ import com.example.dto.BuyerDto;
 import com.example.dto.CreditCardDto;
 import com.example.dto.OrderProcessedDto;
 import com.example.dto.PaymentDto;
-import com.example.dto.payu.PayuPaymentRequest;
+import com.example.dto.paygate.PayGatePaymentRequest;
 import com.example.exception.BadRequestException;
 import com.example.exception.EntityNotFoundException;
-import com.example.exception.PayuTransactionException;
+import com.example.exception.PayGateTransactionException;
 import com.example.mapper.BuyerMapper;
 import com.example.mapper.CreditCardMapper;
 import com.example.mapper.OrderProcessedMapper;
@@ -22,8 +22,9 @@ import com.example.repository.PaymentRepository;
 import com.example.repository.ProductRepository;
 import com.example.repository.ShoppingCartOrderRepository;
 import com.example.utility.DeletionValidator;
-import com.example.utility.PayuRequestBuilder;
+import com.example.utility.PayGateRequestBuilder;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,6 +37,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 
 @Service
+@Slf4j
 public class PaymentService {
     private final PaymentRepository paymentRepository;
     private final PaymentMapper paymentMapper;
@@ -47,7 +49,7 @@ public class PaymentService {
     private final ShoppingCartOrderService shoppingCartOrderService;
     private final ProductRepository productRepository;
     private final ShoppingCartOrderRepository shoppingCartOrderRepository;
-    private final PayuService payuService;
+    private final PayGateService payGateService;
     private final OrderProcessedMapper orderProcessedMapper;
     private final CreditCardMapper creditCardMapper;
     private final CreditCardService creditCardService;
@@ -58,7 +60,7 @@ public class PaymentService {
                           CreditCardRepository creditCardRepository,
                           BuyerService buyerService, OrderProcessedService orderProcessedService1,
                           ShoppingCartOrderService shoppingCartOrderService1, ProductRepository productRepository,
-                          ShoppingCartOrderRepository shoppingCartOrderRepository, PayuService payuService, OrderProcessedMapper orderProcessedMapper,
+                          ShoppingCartOrderRepository shoppingCartOrderRepository, PayGateService payGateService, OrderProcessedMapper orderProcessedMapper,
                           CreditCardMapper creditCardMapper, CreditCardService creditCardService) {
         this.paymentRepository = paymentRepository;
         this.paymentMapper = paymentMapper;
@@ -70,7 +72,7 @@ public class PaymentService {
         this.shoppingCartOrderService = shoppingCartOrderService1;
         this.productRepository = productRepository;
         this.shoppingCartOrderRepository = shoppingCartOrderRepository;
-        this.payuService = payuService;
+        this.payGateService = payGateService;
         this.orderProcessedMapper = orderProcessedMapper;
         this.creditCardMapper = creditCardMapper;
         this.creditCardService = creditCardService;
@@ -113,10 +115,10 @@ public class PaymentService {
         // 5. Descontar stock
         updateStock(orderList, "decrease");
 
-        // 6. Procesar pago con tarjeta (PayU)
+        // 6. Procesar pago con tarjeta (PayGate)
         if (paymentDto.getPaymentMethodId() == PAYMENT_METHOD_CARD) {
 
-            PayuPaymentRequest payuRequest = new PayuPaymentRequest();
+            PayGatePaymentRequest payGateRequest;
 
             //6.1 agregar tarjeta nueva sin token
             if ((paymentDto.getCardNumber() != null && paymentDto.getCvcCode() != null && paymentDto.getCardDate() != null && paymentDto.getTokenizedCode() == null)) {
@@ -135,33 +137,35 @@ public class PaymentService {
                 //guardar tajerta y su token
                 creditCardService.createCreditCard(creditCardDto);
 
-                payuRequest = PayuRequestBuilder.buildPayment(paymentDto, buyerDto, creditCardDto);
+                payGateRequest = PayGateRequestBuilder.buildPayment(paymentDto, buyerDto, creditCardDto);
+
+
             }
             //6.2 pago con token de tarjeta
             else if ((paymentDto.getCardNumber() == null && paymentDto.getTokenizedCode() != null && paymentDto.getCvcCode() != null)) {
-                payuRequest = PayuRequestBuilder.buildPaymentWithToken(paymentDto, buyerDto, paymentDto.getTokenizedCode(), paymentDto.getCvcCode());
+                payGateRequest = PayGateRequestBuilder.buildPaymentWithToken(paymentDto, buyerDto, paymentDto.getTokenizedCode(), paymentDto.getCvcCode());
                 paymentDto.setCardNumber(paymentDto.getTokenizedCode());
             } else
                 throw new BadRequestException("Para pago con token de tarjet debes ingresar: el token y el código de seguridad cvc." +
                         " Para pago con tarjeta directa debe ingresar: el número de tarjeta, la fecha de expiración y el código de seguridad cvc.");
 
 
-            Map<String, Object> payuResponse = payuService.sendPaymentTransaction(payuRequest);
+            Map<String, Object> payGateResponse = payGateService.sendPaymentTransaction(payGateRequest);
 
             @SuppressWarnings("unchecked")
-            Map<String, Object> txResponse = (Map<String, Object>) payuResponse.get("transactionResponse");
+            Map<String, Object> txResponse = (Map<String, Object>) payGateResponse.get("transactionResponse");
 
             // Imprimir la respuesta completa como JSON
             try {
                 ObjectMapper mapper = new ObjectMapper();
-                String json = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(payuResponse);
-                System.out.println("📥 Respuesta completa de PayU:\n" + json);
+                String json = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(payGateResponse);
+                log.info("Respuesta completa de PayGate:\n {}", json);
             } catch (Exception e) {
-                System.out.println("❌ Error al serializar la respuesta de PayU a JSON: " + e.getMessage());
+                log.info("Error al serializar la respuesta de PayGate a JSON: {}", e.getMessage());
             }
 
             if (txResponse == null) {
-                throw new PayuTransactionException("Error en respuesta de transacción desde PayU. Detalles: " + payuResponse);
+                throw new PayGateTransactionException("Error en respuesta de transacción desde PayGate. Detalles: " + payGateResponse);
             }
             String state = (String) txResponse.get("state");
 
@@ -173,7 +177,7 @@ public class PaymentService {
             } else if ("DECLINED".equals(state)) {
                 paymentDto.setConfirmation(2);
             } else {
-                throw new PayuTransactionException("Estado desconocido: " + state);
+                throw new PayGateTransactionException("Estado desconocido: " + state);
             }
         } else
             paymentDto.setCardNumber(null); // Esto para evitar guardar numero de tarjeta ingresados en front si es pago metodo sin tarjeta
@@ -190,7 +194,7 @@ public class PaymentService {
         // 9. Si fue rechazado, revertir stock y lanzar error
         if (paymentDto.getConfirmation() == 2) {
             updateStock(orderList, "increase");
-            throw new PayuTransactionException("Pago rechazado por PayU");
+            throw new PayGateTransactionException("Pago rechazado por PayGate");
         }
 
         // 10. Limpiar el carrito

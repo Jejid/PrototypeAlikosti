@@ -24,12 +24,12 @@ public class GlobalExceptionHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
-    @ExceptionHandler(PayuTransactionException.class)
-    public ResponseEntity<Map<String, Object>> handlePayuTransactionException(PayuTransactionException ex) {
+    @ExceptionHandler(PayGateTransactionException.class)
+    public ResponseEntity<Map<String, Object>> handlePayGateTransactionException(PayGateTransactionException ex) {
         Map<String, Object> response = new HashMap<>();
         response.put("timestamp", java.time.ZonedDateTime.now());
         response.put("status", HttpStatus.BAD_REQUEST.value());
-        response.put("error", "PayU Transaction Error");
+        response.put("error", "PayGate Transaction Error");
         response.put("message", ex.getMessage());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }

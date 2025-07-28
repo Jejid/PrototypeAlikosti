@@ -1,9 +1,9 @@
-package com.example.dto.payu;
+package com.example.dto.paygate;
 
 import lombok.Data;
 
 @Data
-public class PayuTokenRequest {
+public class PayGateTokenRequest {
     private String language;
     private String command;
     private Merchant merchant;

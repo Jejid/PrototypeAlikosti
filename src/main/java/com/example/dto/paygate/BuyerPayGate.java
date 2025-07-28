@@ -1,9 +1,9 @@
-package com.example.dto.payu;
+package com.example.dto.paygate;
 
 import lombok.Data;
 
 @Data
-public class BuyerPayu {
+public class BuyerPayGate {
     private String fullName;
     private String emailAddress;
     private String dniNumber;

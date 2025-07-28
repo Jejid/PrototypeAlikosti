@@ -80,7 +80,7 @@ public class BuyerService {
         return buyerMapper.toModel(buyerRepository.save(buyerMapper.parcialUpdateToDao(buyerDaoOrigin, updates)));
     }
 
-     /* public BuyerPayu partialUpdateBuyer2(Integer id, BuyerDto updatesDto) {
+     /* public BuyerPayGate partialUpdateBuyer2(Integer id, BuyerDto updatesDto) {
 
         Optional<BuyerDao> optionalBuyer = buyerRepository.findById(id);
         BuyerDao buyerDaoOrigin = optionalBuyer.orElseThrow(() -> new EntityNotFoundException("Comprador con ID: " + id + ", no encontrado"));

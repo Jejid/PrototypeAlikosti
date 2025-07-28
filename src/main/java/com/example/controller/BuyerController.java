@@ -81,7 +81,7 @@ public class BuyerController {
 
     /*@PatchMapping("/a/{id}")
     public ResponseEntity<Map<String, String>> partialUpdateBuyer2(@PathVariable Integer id, @RequestBody BuyerDto updatesDto) {
-        BuyerPayu updatedBuyer = buyerService.partialUpdateBuyer2(id, updatesDto);
+        BuyerPayGate updatedBuyer = buyerService.partialUpdateBuyer2(id, updatesDto);
         Map<String, String> response = new HashMap<>();
         response.put("message", "Comprador: " + updatedBuyer.getName() + ", campo/s actualizado/s exitosamente");
         return ResponseEntity.ok(response);

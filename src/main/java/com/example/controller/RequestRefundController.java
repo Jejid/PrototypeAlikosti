@@ -63,9 +63,9 @@ public class RequestRefundController {
         String mensaje;
         switch (created.getConfirmation()) {
             case 1 ->
-                    mensaje = "Solicitud de reembolso con ID: " + created.getId() + ", aprobada automáticamente por PayU.";
+                    mensaje = "Solicitud de reembolso con ID: " + created.getId() + ", aprobada automáticamente por PayGate.";
             case 2 ->
-                    mensaje = "Solicitud de reembolso con ID: " + created.getId() + ", rechazada automáticamente por PayU.";
+                    mensaje = "Solicitud de reembolso con ID: " + created.getId() + ", rechazada automáticamente por PayGate.";
             default ->
                     mensaje = "Solicitud de reembolso con ID: " + created.getId() + ", creada exitosamente y está pendiente de revisión.";
         }

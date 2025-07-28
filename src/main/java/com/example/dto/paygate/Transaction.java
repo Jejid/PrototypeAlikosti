@@ -1,4 +1,4 @@
-package com.example.dto.payu;
+package com.example.dto.paygate;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
@@ -10,7 +10,7 @@ public class Transaction {
     private Payer payer;
 
     //@JsonProperty("creditCard")
-    private Object creditCard; // Puede ser CreditCardPayu o CreditCardTokenInfo
+    private Object creditCard; // Puede ser CreditCardPayGate o CreditCardTokenInfo
 
     private String type = "AUTHORIZATION_AND_CAPTURE";
     private String paymentMethod;
