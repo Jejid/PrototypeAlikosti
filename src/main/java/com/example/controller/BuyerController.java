@@ -1,9 +1,9 @@
 package com.example.controller;
 
 import com.example.dto.BuyerDto;
+import com.example.mapper.BuyerMapper;
 import com.example.model.Buyer;
 import com.example.service.BuyerService;
-import com.example.utility.BuyerMapper;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -59,7 +59,7 @@ public class BuyerController {
         buyerService.deleteBuyer(id);
 
         Map<String, String> response = new HashMap<>();
-        response.put("message", "Comprador: " + nameBuyer + "de ID: " + id + ", fue eliminado exitosamente");
+        response.put("message", "Comprador: " + nameBuyer + " de ID: " + id + ", fue eliminado exitosamente");
         return ResponseEntity.ok(response);
     }
 
@@ -81,7 +81,7 @@ public class BuyerController {
 
     /*@PatchMapping("/a/{id}")
     public ResponseEntity<Map<String, String>> partialUpdateBuyer2(@PathVariable Integer id, @RequestBody BuyerDto updatesDto) {
-        Buyer updatedBuyer = buyerService.partialUpdateBuyer2(id, updatesDto);
+        BuyerPayGate updatedBuyer = buyerService.partialUpdateBuyer2(id, updatesDto);
         Map<String, String> response = new HashMap<>();
         response.put("message", "Comprador: " + updatedBuyer.getName() + ", campo/s actualizado/s exitosamente");
         return ResponseEntity.ok(response);

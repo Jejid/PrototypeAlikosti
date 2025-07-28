@@ -6,9 +6,9 @@ import com.example.exception.BadRequestException;
 import com.example.exception.EntityNotFoundException;
 import com.example.exception.InvalidCredentialsException;
 import com.example.exception.UserNotFoundException;
+import com.example.mapper.BuyerMapper;
 import com.example.model.Buyer;
 import com.example.repository.BuyerRepository;
-import com.example.utility.BuyerMapper;
 import com.example.utility.DeletionValidator;
 import org.springframework.stereotype.Service;
 
@@ -32,7 +32,10 @@ public class BuyerService {
 
     public List<Buyer> getAllBuyers() {
         List<BuyerDao> buyerListDao = buyerRepository.findAll();
-        return buyerListDao.stream().map(buyerMapper::toModel).collect(Collectors.toList());
+        return buyerListDao
+                .stream()
+                .map(buyerMapper::toModel)
+                .collect(Collectors.toList());
     }
 
     public Buyer getBuyerById(Integer id) {
@@ -42,13 +45,10 @@ public class BuyerService {
     }
 
     public String getLoginAccess(String email, String pass) {
-            
+
         Optional<BuyerDao> optionBuyerDao = buyerRepository.findByEmail(email);
         BuyerDao buyerDao = optionBuyerDao.orElseThrow(() -> new UserNotFoundException("El email no existe"));
 
-        System.out.println("Email: " + email);
-        System.out.println("Password input: " + pass);
-        System.out.println("Password in DB: " + buyerDao.getPassAccount());
         if (buyerDao.getPassAccount().equals(pass)) return "Acceso Aprobado";
         else throw new InvalidCredentialsException("Contraseña Incorrecta");
 
@@ -80,7 +80,7 @@ public class BuyerService {
         return buyerMapper.toModel(buyerRepository.save(buyerMapper.parcialUpdateToDao(buyerDaoOrigin, updates)));
     }
 
-     /* public Buyer partialUpdateBuyer2(Integer id, BuyerDto updatesDto) {
+     /* public BuyerPayGate partialUpdateBuyer2(Integer id, BuyerDto updatesDto) {
 
         Optional<BuyerDao> optionalBuyer = buyerRepository.findById(id);
         BuyerDao buyerDaoOrigin = optionalBuyer.orElseThrow(() -> new EntityNotFoundException("Comprador con ID: " + id + ", no encontrado"));

@@ -1,4 +1,4 @@
-package com.example.utility;
+package com.example.mapper;
 
 import com.example.dao.ShoppingCartOrderDao;
 import com.example.dto.ShoppingCartOrderDto;
@@ -19,7 +19,7 @@ public class ShoppingCartOrderMapper {
         model.setBuyerId(dto.getBuyerId());
         model.setProductId(dto.getProductId());
         model.setUnits(dto.getUnits());
-        model.setTotal_product(dto.getTotal_product());
+        model.setTotalProduct(dto.getTotalProduct());
         return model;
     }
 
@@ -30,7 +30,7 @@ public class ShoppingCartOrderMapper {
         dao.setBuyerId(model.getBuyerId());
         dao.setProductId(model.getProductId());
         dao.setUnits(model.getUnits());
-        dao.setTotal_product(model.getTotal_product());
+        dao.setTotalProduct(model.getTotalProduct());
         return dao;
     }
 
@@ -41,7 +41,7 @@ public class ShoppingCartOrderMapper {
         model.setBuyerId(dao.getBuyerId());
         model.setProductId(dao.getProductId());
         model.setUnits(dao.getUnits());
-        model.setTotal_product(dao.getTotal_product());
+        model.setTotalProduct(dao.getTotalProduct());
         return model;
     }
 
@@ -52,7 +52,7 @@ public class ShoppingCartOrderMapper {
         dto.setBuyerId(model.getBuyerId());
         dto.setProductId(model.getProductId());
         dto.setUnits(model.getUnits());
-        dto.setTotal_product(model.getTotal_product());
+        dto.setTotalProduct(model.getTotalProduct());
         return dto;
     }
 

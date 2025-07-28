@@ -1,4 +1,4 @@
-package com.example.utility;
+package com.example.mapper;
 
 import com.example.dao.BuyerDao;
 import com.example.dto.BuyerDto;
@@ -25,6 +25,7 @@ public class BuyerMapper {
         model.setCc(dto.getCc());
         model.setEmail(dto.getEmail());
         model.setPassAccount(dto.getPassAccount());
+        model.setPhone(dto.getPhone());
         return model;
     }
 
@@ -39,6 +40,7 @@ public class BuyerMapper {
         dao.setCc(model.getCc());
         dao.setEmail(model.getEmail());
         dao.setPassAccount(model.getPassAccount());
+        dao.setPhone(model.getPhone());
         return dao;
     }
 
@@ -53,7 +55,23 @@ public class BuyerMapper {
         buyer.setCc(dao.getCc());
         buyer.setEmail(dao.getEmail());
         buyer.setPassAccount(dao.getPassAccount());
+        buyer.setPhone(dao.getPhone());
         return buyer;
+    }
+
+    // Model -> DTO
+    public BuyerDto toDto(Buyer buyer) {
+        if (buyer == null) return null;
+        BuyerDto dto = new BuyerDto();
+        dto.setId(buyer.getId());
+        dto.setName(buyer.getName());
+        dto.setSurname(buyer.getSurname());
+        dto.setBirthDate(buyer.getBirthDate());
+        dto.setEmail(buyer.getEmail());
+        dto.setCc(buyer.getCc());
+        //dto.setPassAccount(buyer.getPassAccount());
+        dto.setPhone(buyer.getPhone());
+        return dto;
     }
 
     // Model -> DTO
@@ -66,7 +84,8 @@ public class BuyerMapper {
         dto.setBirthDate(buyer.getBirthDate());
         dto.setEmail(buyer.getEmail());
         dto.setCc("confidencial");
-        dto.setPassAccount("confidencial");
+        dto.setPassAccount("**********");
+        dto.setPhone(buyer.getPhone());
         return dto;
     }
 
@@ -93,6 +112,9 @@ public class BuyerMapper {
                     case "passAccount":
                         if (value == null || value instanceof String) dao.setPassAccount(((String) value));
                         break;
+                    case "phone":
+                        if (value == null || value instanceof String) dao.setPhone(((String) value));
+                        break;
                     default:
                         throw new IllegalArgumentException("El campo " + key + " no es válido o no existe para actualización.");
                 }
@@ -103,6 +125,7 @@ public class BuyerMapper {
 
         return dao;
     }
+
     /*public BuyerDao parcialUpdateToDao2(BuyerDto dto, BuyerDao daoOrigin) {
         if (dto == null) return null;
 

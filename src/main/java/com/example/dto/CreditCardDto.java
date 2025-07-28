@@ -25,10 +25,16 @@ public class CreditCardDto {
     private String cardDate;
 
     @NotNull(message = "El código CVC de la tarjeta es necesario")
-    private int cvcCode;
+    private String cvcCode;
 
     private String tokenizedCode;
 
     @NotBlank(message = "El nombre del banco de la tarjeta es necesario")
     private String bank;
+
+    @NotBlank(message = "El tipo de la tarjeta es necesario (ahorros o credito)")
+    private String cardType;
+
+    @NotBlank(message = "La franquicia de la tarjeta es necesaria (Visa, master card, american express, etc)")
+    private String franchise;
 }

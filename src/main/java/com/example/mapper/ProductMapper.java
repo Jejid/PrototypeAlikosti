@@ -1,4 +1,4 @@
-package com.example.utility;
+package com.example.mapper;
 
 import com.example.dao.ProductDao;
 import com.example.dto.ProductDto;
@@ -79,19 +79,27 @@ public class ProductMapper {
             try {
                 switch (key) {
                     case "categoryId":
-                        if (value instanceof Number) dao.setCategoryId(((Number) value).intValue());
+                        if (value instanceof Number) dao.setCategoryId(Math.max(((Number) value).intValue(), 0));
                         break;
                     case "name":
                         if (value instanceof String) dao.setName((String) value);
                         break;
                     case "price":
-                        if (value instanceof Number) dao.setPrice(((Number) value).intValue());
+                        if (value instanceof Number) {
+                            int val = ((Number) value).intValue();
+                            if (val < 0) throw new IllegalArgumentException("El precio no puede ser negativo");
+                            dao.setPrice(val);
+                        }
                         break;
                     case "description":
                         if (value instanceof String) dao.setDescription((String) value);
                         break;
                     case "stock":
-                        if (value instanceof Number) dao.setStock(((Number) value).intValue());
+                        if (value instanceof Number) {
+                            int val = ((Number) value).intValue();
+                            if (val < 0) throw new IllegalArgumentException("El stock no puede ser negativo");
+                            dao.setStock(val);
+                        }
                         break;
                     case "pic":
                         if (value instanceof String) dao.setPic((String) value);

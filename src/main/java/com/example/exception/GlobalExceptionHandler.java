@@ -24,6 +24,24 @@ public class GlobalExceptionHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
+    @ExceptionHandler(PayGateTransactionException.class)
+    public ResponseEntity<Map<String, Object>> handlePayGateTransactionException(PayGateTransactionException ex) {
+        Map<String, Object> response = new HashMap<>();
+        response.put("timestamp", java.time.ZonedDateTime.now());
+        response.put("status", HttpStatus.BAD_REQUEST.value());
+        response.put("error", "PayGate Transaction Error");
+        response.put("message", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<Map<String, String>> handleIllegalStateException(IllegalStateException ex) {
+        Map<String, String> response = new HashMap<>();
+        response.put("error", "Error de lógica de negocio");
+        response.put("mensaje", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, String>> handleValidationExceptions(MethodArgumentNotValidException ex) {
         Map<String, String> errors = new HashMap<>();
@@ -39,7 +57,6 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
     }
 
-
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<Map<String, String>> handleIllegalArgumentException(IllegalArgumentException ex) {
         logger.error("Error de argumento inválido: {}", ex.getMessage());
@@ -47,7 +64,6 @@ public class GlobalExceptionHandler {
         error.put("error", ex.getMessage());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
-
 
     @ExceptionHandler(ConstraintViolationException.class)
     public ResponseEntity<Map<String, String>> handleConstraintViolationException(ConstraintViolationException ex) {
@@ -71,8 +87,6 @@ public class GlobalExceptionHandler {
             response.put("error", "el ID de metodo de pago especificado no existe.");
         } else if (message.contains("fk_payment_buyer")) {
             response.put("error", "el ID de comprador especificado no existe.");
-        } else if (message.contains("check_paymentmethod_creditcard")) {
-            response.put("error", "Si no es método tarjeta deja vacío el campo número de tarjeta. Si es método tarjeta debes llenar el campo número de tarjeta.");
         } else if (message.contains("check_code_confirmation_not_null")) {
             response.put("error", "Al aprobarse el pago confirmation=1, el código de confirmación debe agregarse, no puede ser nulo");
 
@@ -100,7 +114,7 @@ public class GlobalExceptionHandler {
 
             // de credit_card
         } else if (message.contains("idx_unique_card_for_buyer")) {
-            response.put("error", "Ya existe una tarjeta con ese número registrada para este comprador.");
+            response.put("error", "Ya hay una tarjeta tokenizada para ese comprador, usa su toke o ingresa una nueva tarjeta");
         } else if (message.contains("fk_buyer_creditcard")) {
             response.put("error", "el ID de comprador especificado no existe.");
 
@@ -123,7 +137,6 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
-
 
     @ExceptionHandler(BadRequestException.class)
     public ResponseEntity<Map<String, String>> handleBadRequest(BadRequestException ex) {

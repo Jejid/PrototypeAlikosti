@@ -1,9 +1,9 @@
 package com.example.controller;
 
 import com.example.dto.RequestRefundDto;
+import com.example.mapper.RequestRefundMapper;
 import com.example.model.RequestRefund;
 import com.example.service.RequestRefundService;
-import com.example.utility.RequestRefundMapper;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.*;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/refunds")
@@ -26,13 +25,28 @@ public class RequestRefundController {
         this.requestRefundMapper = requestRefundMapper;
     }
 
+    @PatchMapping("/{id}/confirm")
+    public ResponseEntity<Map<String, String>> confirmPayment(@PathVariable Integer id, @RequestParam Integer state) {
+        String confirmation = requestRefundService.confirmRefundById(id, state);
+
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "El reembolso con id " + id + " fue: " + confirmation);
+        return ResponseEntity.ok(response);
+    }
+
     @GetMapping
-    public ResponseEntity<List<RequestRefundDto>> getAllRequestRefunds() {
-        return new ResponseEntity<>(
-                requestRefundService.getAllRequestRefunds().stream()
-                        .map(requestRefundMapper::toPublicDto)
-                        .collect(Collectors.toList()),
-                HttpStatus.OK);
+    public ResponseEntity<Map<String, Object>> getAllRequestRefunds() {
+        List<RequestRefundDto> requestRefundDtos = requestRefundService.getAllRequestRefunds().stream()
+                .map(requestRefundMapper::toPublicDto)
+                .toList();
+
+        String message = "Reembolsos de la base de datos: ";
+        if (requestRefundDtos.isEmpty()) message = "No hay Reembolsos en la tabla de la base de datos";
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("message", message);
+        response.put("data", requestRefundDtos);
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/{id}")
@@ -46,9 +60,17 @@ public class RequestRefundController {
     public ResponseEntity<Map<String, String>> createRequestRefund(@Valid @RequestBody RequestRefundDto requestRefundDto) {
         RequestRefund created = requestRefundService.createRequestRefund(requestRefundDto);
 
-        Map<String, String> response = new HashMap<>();
-        response.put("message", "Solicitud de reembolso con ID: " + created.getId() + ", creada exitosamente");
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        String mensaje;
+        switch (created.getConfirmation()) {
+            case 1 ->
+                    mensaje = "Solicitud de reembolso con ID: " + created.getId() + ", aprobada automáticamente por PayGate.";
+            case 2 ->
+                    mensaje = "Solicitud de reembolso con ID: " + created.getId() + ", rechazada automáticamente por PayGate.";
+            default ->
+                    mensaje = "Solicitud de reembolso con ID: " + created.getId() + ", creada exitosamente y está pendiente de revisión.";
+        }
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(Map.of("message", mensaje));
     }
 
     @DeleteMapping("/{id}")
@@ -60,6 +82,7 @@ public class RequestRefundController {
         return ResponseEntity.ok(response);
     }
 
+    /*
     @PutMapping("/{id}")
     public ResponseEntity<Map<String, String>> updateRequestRefund(@PathVariable Integer id, @Valid @RequestBody RequestRefundDto requestRefundDto) {
         RequestRefund updated = requestRefundService.updateRequestRefund(id, requestRefundDto);
@@ -77,4 +100,5 @@ public class RequestRefundController {
         response.put("message", "Solicitud de reembolso con ID: " + updated.getId() + ", campo/s actualizado/s exitosamente");
         return ResponseEntity.ok(response);
     }
+    */
 }

@@ -1,9 +1,9 @@
 package com.example.controller;
 
 import com.example.dto.PaymentMethodDto;
+import com.example.mapper.PaymentMethodMapper;
 import com.example.model.PaymentMethod;
 import com.example.service.PaymentMethodService;
-import com.example.utility.PaymentMethodMapper;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

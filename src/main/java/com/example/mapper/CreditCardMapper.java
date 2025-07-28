@@ -1,12 +1,14 @@
-package com.example.utility;
+package com.example.mapper;
 
 import com.example.dao.CreditCardDao;
 import com.example.dto.CreditCardDto;
 import com.example.model.CreditCard;
+import com.example.utility.DateValidator;
 import lombok.NoArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
+
 
 @NoArgsConstructor
 @Component
@@ -24,6 +26,8 @@ public class CreditCardMapper {
         model.setCvcCode(dto.getCvcCode());
         model.setTokenizedCode(dto.getTokenizedCode());
         model.setBank(dto.getBank());
+        model.setCardType(dto.getCardType());
+        model.setFranchise(dto.getFranchise());
         return model;
     }
 
@@ -39,6 +43,8 @@ public class CreditCardMapper {
         dao.setCvcCode(model.getCvcCode());
         dao.setTokenizedCode(model.getTokenizedCode());
         dao.setBank(model.getBank());
+        dao.setCardType(model.getCardType());
+        dao.setFranchise(model.getFranchise());
         return dao;
     }
 
@@ -54,7 +60,26 @@ public class CreditCardMapper {
         model.setCvcCode(dao.getCvcCode());
         model.setTokenizedCode(dao.getTokenizedCode());
         model.setBank(dao.getBank());
+        model.setCardType(dao.getCardType());
+        model.setFranchise(dao.getFranchise());
         return model;
+    }
+
+    // DAO -> Dto
+    public CreditCardDto toDto(CreditCardDao dao) {
+        if (dao == null) return null;
+        CreditCardDto dto = new CreditCardDto();
+        dto.setId(dao.getId());
+        dto.setBuyerId(dao.getBuyerId());
+        dto.setName(dao.getName());
+        dto.setCardNumber(dao.getCardNumber());
+        dto.setCardDate(dao.getCardDate());
+        dto.setCvcCode(dao.getCvcCode());
+        dto.setTokenizedCode(dao.getTokenizedCode());
+        dto.setBank(dao.getBank());
+        dto.setCardType(dao.getCardType());
+        dto.setFranchise(dao.getFranchise());
+        return dto;
     }
 
     // Model -> DTO
@@ -65,10 +90,12 @@ public class CreditCardMapper {
         dto.setBuyerId(model.getBuyerId());
         dto.setName(model.getName());
         dto.setCardNumber("**** **** **** " + model.getCardNumber().substring(model.getCardNumber().length() - 4)); // se toman los ultimos 4 digitos
-        dto.setCardDate("conficencial");
-        dto.setCvcCode(0);
+        dto.setCardDate("confidencial");
+        dto.setCvcCode("***");
         dto.setTokenizedCode(model.getTokenizedCode());
         dto.setBank(model.getBank());
+        dto.setCardType(model.getCardType());
+        dto.setFranchise(model.getFranchise());
         return dto;
     }
 
@@ -88,16 +115,28 @@ public class CreditCardMapper {
                         if (value instanceof String) dao.setCardNumber((String) value);
                         break;
                     case "cardDate":
+                        if (!DateValidator.isValidFormat(value.toString())) {
+                            throw new IllegalArgumentException("Formato de fecha inválido. Usa MM/aa (ej. 07/27).");
+                        }
+                        if (DateValidator.isExpired(value.toString())) {
+                            throw new IllegalArgumentException("La tarjeta está vencida.");
+                        }
                         if (value instanceof String) dao.setCardDate((String) value);
                         break;
                     case "cvcCode":
-                        if (value instanceof Number) dao.setCvcCode(((Number) value).intValue());
+                        if (value instanceof String) dao.setCvcCode(((String) value));
                         break;
                     case "tokenizedCode":
                         if (value instanceof String) dao.setTokenizedCode((String) value);
                         break;
                     case "bank":
                         if (value instanceof String) dao.setBank((String) value);
+                        break;
+                    case "cardType":
+                        if (value instanceof String) dao.setCardType((String) value);
+                        break;
+                    case "franchise":
+                        if (value instanceof String) dao.setFranchise((String) value);
                         break;
                     default:
                         throw new IllegalArgumentException("El campo " + key + " no es válido o no existe para actualización.");

@@ -12,7 +12,6 @@ public class RequestRefundDto {
 
     private int id;
 
-    @NotNull(message = "El ID del comprador es necesario")
     private int buyerId;
 
     @NotNull(message = "El ID del pago es necesario")
@@ -26,5 +25,7 @@ public class RequestRefundDto {
     @NotNull(message = "El tipo de reembolso es obligatorio")
     @Min(value = 0, message = "El tipo de reembolso debe ser mayor o igual a 0")
     private int refundType;
+
+    private String reason;
 
 }

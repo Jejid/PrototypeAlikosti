@@ -22,4 +22,6 @@ public class RequestRefundDao {
 
     private int refundType;
 
+    private String reason;
+
 }

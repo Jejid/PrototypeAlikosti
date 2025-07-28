@@ -16,7 +16,7 @@ public class CreditCardDao {
 
     private int buyerId;
 
-    @Column(name = "name", length = 20, nullable = false)
+    @Column(name = "name", length = 40, nullable = false)
     private String name;
 
     @Column(name = "card_number", length = 35, nullable = false)
@@ -24,9 +24,17 @@ public class CreditCardDao {
 
     private String cardDate;
 
-    private int cvcCode;
+    @Column(name = "cvc_code")
+    private String cvcCode;
 
+    @Column(name = "tokenized_code")
     private String tokenizedCode;
 
     private String bank;
+
+    @Column(name = "card_type", nullable = false)
+    private String cardType;
+
+    @Column(nullable = false)
+    private String franchise;
 }

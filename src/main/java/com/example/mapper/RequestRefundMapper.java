@@ -1,4 +1,4 @@
-package com.example.utility;
+package com.example.mapper;
 
 import com.example.dao.RequestRefundDao;
 import com.example.dto.RequestRefundDto;
@@ -21,6 +21,7 @@ public class RequestRefundMapper {
         model.setPaymentId(dto.getPaymentId());
         model.setConfirmation(dto.getConfirmation());
         model.setRefundType(dto.getRefundType());
+        model.setReason(dto.getReason());
         return model;
     }
 
@@ -33,6 +34,7 @@ public class RequestRefundMapper {
         dao.setPaymentId(model.getPaymentId());
         dao.setConfirmation(model.getConfirmation());
         dao.setRefundType(model.getRefundType());
+        dao.setReason(model.getReason());
         return dao;
     }
 
@@ -45,6 +47,7 @@ public class RequestRefundMapper {
         model.setPaymentId(dao.getPaymentId());
         model.setConfirmation(dao.getConfirmation());
         model.setRefundType(dao.getRefundType());
+        model.setReason(dao.getReason());
         return model;
     }
 
@@ -57,6 +60,7 @@ public class RequestRefundMapper {
         dto.setPaymentId(model.getPaymentId());
         dto.setConfirmation(model.getConfirmation());
         dto.setRefundType(model.getRefundType());
+        dto.setReason(model.getReason());
         return dto;
     }
 
@@ -75,7 +79,7 @@ public class RequestRefundMapper {
                         if (value instanceof Number) dao.setPaymentId(((Number) value).intValue());
                         break;
                     case "confirmation":
-                        if (value instanceof Number) dao.setConfirmation(((Number) value).intValue());
+                        if (value instanceof Number) dao.setConfirmation(0);
                         break;
                     case "refundType":
                     case "refund_type":

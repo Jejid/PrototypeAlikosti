@@ -4,10 +4,10 @@ import com.example.dao.PaymentMethodDao;
 import com.example.dto.PaymentMethodDto;
 import com.example.exception.BadRequestException;
 import com.example.exception.EntityNotFoundException;
+import com.example.mapper.PaymentMethodMapper;
 import com.example.model.PaymentMethod;
 import com.example.repository.PaymentMethodRepository;
 import com.example.utility.DeletionValidator;
-import com.example.utility.PaymentMethodMapper;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

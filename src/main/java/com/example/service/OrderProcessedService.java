@@ -2,11 +2,14 @@ package com.example.service;
 
 import com.example.dao.OrderProcessedDao;
 import com.example.dto.OrderProcessedDto;
+import com.example.dto.ReportSalesDto;
 import com.example.exception.EntityNotFoundException;
+import com.example.exception.UserNotFoundException;
 import com.example.key.OrderProcessedKey;
+import com.example.mapper.OrderProcessedMapper;
 import com.example.model.OrderProcessed;
 import com.example.repository.OrderProcessedRepository;
-import com.example.utility.OrderProcessedMapper;
+import com.example.repository.PaymentRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -14,18 +17,48 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
+//Puede verse como tabla Ventas
 public class OrderProcessedService {
 
     private final OrderProcessedRepository orderProcessedRepository;
     private final ProductService productService;
-    private final PaymentService paymentService;
     private final OrderProcessedMapper orderProcessedMapper;
+    private final PaymentRepository paymentRepository;
 
-    public OrderProcessedService(OrderProcessedRepository orderProcessedRepository, ProductService productService, PaymentService paymentService, OrderProcessedMapper orderProcessedMapper) {
+
+    public Integer getTotalSalesByBuyerId(int id) {
+        Integer totalSale = orderProcessedRepository.sumTotalProductsByBuyerId(id);
+        if (totalSale == null || totalSale <= 0)
+            throw new UserNotFoundException("El comprador de id: " + id + " no tiene compras registradas");
+        return totalSale;
+    }
+
+    public List<OrderProcessed> getSalesByBuyerId(int id) {
+        if (orderProcessedRepository.findAllByBuyerId(id).isEmpty())
+            throw new UserNotFoundException("El comprador de id: " + id + " no tiene compras registradas");
+        return orderProcessedRepository.findAllByBuyerId(id).stream().map(orderProcessedMapper::toModel).toList();
+    }
+
+    public List<ReportSalesDto> getLuquidSales() {
+
+        List<Object[]> rawResults = paymentRepository.findSalesReportList();
+        if (rawResults.isEmpty()) throw new EntityNotFoundException("No hay ventan liquidas registradas");
+
+        return rawResults.stream()
+                .map(row -> new ReportSalesDto(
+                        ((Number) row[0]).intValue(),         // buyerId
+                        (String) row[1],                      // nameBuyer
+                        ((Number) row[2]).intValue()          // totalSales
+                ))
+                .toList();
+    }
+
+    //---- Metodos Basicos ----
+    public OrderProcessedService(OrderProcessedRepository orderProcessedRepository, ProductService productService, OrderProcessedMapper orderProcessedMapper, PaymentRepository paymentRepository) {
         this.orderProcessedRepository = orderProcessedRepository;
         this.productService = productService;
-        this.paymentService = paymentService;
         this.orderProcessedMapper = orderProcessedMapper;
+        this.paymentRepository = paymentRepository;
     }
 
     public List<OrderProcessed> getAllOrdersProcessed() {
@@ -39,17 +72,19 @@ public class OrderProcessedService {
         return orderProcessedMapper.toModel(dao);
     }
 
-    public OrderProcessed createOrderProcessed(OrderProcessedDto dto) {
+    public OrderProcessed createItemOrderProcessed(OrderProcessedDto dto) {
         if (orderProcessedRepository.existsById(new OrderProcessedKey(dto.getPaymentId(), dto.getProductId())))
             throw new IllegalArgumentException("La orden ya existe con paymentId: " + dto.getPaymentId() + " y productId: " + dto.getProductId());
 
-        dto.setTotal_product(dto.getUnits() * productService.getProductById(dto.getProductId()).getPrice());
+        dto.setTotalProduct(dto.getUnits() * productService.getProductById(dto.getProductId()).getPrice());
 
         return orderProcessedMapper.toModel(orderProcessedRepository.save(orderProcessedMapper.toDao(orderProcessedMapper.toModel(dto))));
     }
 
     public List<OrderProcessed> getOrdersByPaymentId(int paymentId) {
-        paymentService.getPaymentById(paymentId);
+        if (!paymentRepository.existsById(paymentId)) {
+            throw new EntityNotFoundException("No existe un pago con ID " + paymentId);
+        }
         List<OrderProcessed> orders = orderProcessedRepository.findAll().stream()
                 .filter(dao -> dao.getPaymentId() == paymentId)
                 .map(orderProcessedMapper::toModel)
@@ -72,7 +107,7 @@ public class OrderProcessedService {
         if (!orderProcessedRepository.existsById(new OrderProcessedKey(paymentId, productId)))
             throw new IllegalArgumentException("Orden con paymentId: " + paymentId + " y productId: " + productId + " no existe.");
 
-        dto.setTotal_product(dto.getUnits() * productService.getProductById(productId).getPrice());
+        dto.setTotalProduct(dto.getUnits() * productService.getProductById(productId).getPrice());
         dto.setPaymentId(paymentId);
         dto.setProductId(productId);
 
@@ -88,7 +123,10 @@ public class OrderProcessedService {
     }
 
     public void deleteOrdersByPaymentId(int paymentId) {
-        paymentService.getPaymentById(paymentId);
+        if (!paymentRepository.existsById(paymentId)) {
+            throw new EntityNotFoundException("No existe un pago con ID " + paymentId);
+        }
+        //paymentService.getPaymentById(paymentId);
         orderProcessedRepository.findAll().stream()
                 .filter(dao -> dao.getPaymentId() == paymentId)
                 .map(dao -> new OrderProcessedKey(dao.getPaymentId(), dao.getProductId()))
@@ -101,7 +139,7 @@ public class OrderProcessedService {
 
         if (updates.containsKey("units")) {
             dao.setUnits((Integer) updates.get("units"));
-            dao.setTotal_product(dao.getUnits() * productService.getProductById(productId).getPrice());
+            dao.setTotalProduct(dao.getUnits() * productService.getProductById(productId).getPrice());
         }
 
         return orderProcessedMapper.toModel(orderProcessedRepository.save(dao));

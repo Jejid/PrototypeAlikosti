@@ -1,9 +1,10 @@
 package com.example.controller;
 
 import com.example.dto.OrderProcessedDto;
+import com.example.dto.ReportSalesDto;
+import com.example.mapper.OrderProcessedMapper;
 import com.example.model.OrderProcessed;
 import com.example.service.OrderProcessedService;
-import com.example.utility.OrderProcessedMapper;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,11 +27,37 @@ public class OrderProcessedController {
         this.orderProcessedMapper = orderProcessedMapper;
     }
 
+    @GetMapping("totalsales/{buyerId}")
+    public Integer getTotalSalesByBuyerId(@PathVariable int buyerId) {
+        return orderProcessedService.getTotalSalesByBuyerId(buyerId);
+    }
+
+    @GetMapping("/liquid-sales")
+    public ResponseEntity<Map<String, Object>> getLiquidSales() {
+
+        List<ReportSalesDto> reportSalesDtos = orderProcessedService.getLuquidSales();
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("message", "El total líquido de ventas es: " + reportSalesDtos.stream().mapToInt(ReportSalesDto::getTotalSales).sum());
+        response.put("data", reportSalesDtos);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/{buyerId}")
+    public ResponseEntity<List<OrderProcessedDto>> getSalesByBuyerId(@PathVariable int buyerId) {
+        return new ResponseEntity<>(
+                orderProcessedService.getSalesByBuyerId(buyerId).stream()
+                        .map(orderProcessedMapper::toDto).toList(),
+                HttpStatus.OK);
+    }
+
+
+    // ----- Métodos Básicos ----
     @GetMapping
     public ResponseEntity<List<OrderProcessedDto>> getAllOrdersProcessed() {
         return new ResponseEntity<>(
                 orderProcessedService.getAllOrdersProcessed().stream()
-                        .map(orderProcessedMapper::toPublicDto)
+                        .map(orderProcessedMapper::toDto)
                         .collect(Collectors.toList()),
                 HttpStatus.OK);
     }
@@ -38,13 +65,13 @@ public class OrderProcessedController {
     @GetMapping("/payment/{paymentId}/product/{productId}")
     public ResponseEntity<OrderProcessedDto> getOrderProcessedById(@PathVariable int paymentId, @PathVariable int productId) {
         return new ResponseEntity<>(
-                orderProcessedMapper.toPublicDto(orderProcessedService.getOrderProcessedById(paymentId, productId)),
+                orderProcessedMapper.toDto(orderProcessedService.getOrderProcessedById(paymentId, productId)),
                 HttpStatus.OK);
     }
 
     @PostMapping
     public ResponseEntity<Map<String, String>> createOrderProcessed(@Valid @RequestBody OrderProcessedDto dto) {
-        OrderProcessed created = orderProcessedService.createOrderProcessed(dto);
+        OrderProcessed created = orderProcessedService.createItemOrderProcessed(dto);
 
         Map<String, String> response = new HashMap<>();
         response.put("message", "Orden procesada exitosamente para el pago con ID: " + created.getPaymentId());
@@ -63,7 +90,7 @@ public class OrderProcessedController {
     public ResponseEntity<List<OrderProcessedDto>> getOrdersByPaymentId(@PathVariable int paymentId) {
         return new ResponseEntity<>(
                 orderProcessedService.getOrdersByPaymentId(paymentId).stream()
-                        .map(orderProcessedMapper::toPublicDto)
+                        .map(orderProcessedMapper::toDto)
                         .collect(Collectors.toList()),
                 HttpStatus.OK);
     }
@@ -91,7 +118,7 @@ public class OrderProcessedController {
 
         Map<String, Object> response = new HashMap<>();
         response.put("message", "Orden procesada actualizada para paymentId: " + paymentId + ", productId: " + productId);
-        response.put("data", orderProcessedMapper.toPublicDto(updated));
+        response.put("data", orderProcessedMapper.toDto(updated));
         return ResponseEntity.ok(response);
     }
 
@@ -102,7 +129,7 @@ public class OrderProcessedController {
 
         Map<String, Object> response = new HashMap<>();
         response.put("message", "Orden procesada parcialmente actualizada para paymentId: " + paymentId + ", productId: " + productId);
-        response.put("data", orderProcessedMapper.toPublicDto(updated));
+        response.put("data", orderProcessedMapper.toDto(updated));
         return ResponseEntity.ok(response);
     }
 }

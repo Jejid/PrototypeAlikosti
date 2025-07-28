@@ -4,10 +4,10 @@ import com.example.dao.ProductDao;
 import com.example.dto.ProductDto;
 import com.example.exception.BadRequestException;
 import com.example.exception.EntityNotFoundException;
+import com.example.mapper.ProductMapper;
 import com.example.model.Product;
 import com.example.repository.ProductRepository;
 import com.example.utility.DeletionValidator;
-import com.example.utility.ProductMapper;
 import org.springframework.stereotype.Service;
 
 import java.util.*;

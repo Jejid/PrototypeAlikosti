@@ -1,4 +1,4 @@
-package com.example.utility;
+package com.example.mapper;
 
 import com.example.dao.PaymentDao;
 import com.example.dto.PaymentDto;
@@ -25,6 +25,8 @@ public class PaymentMapper {
         model.setCodeConfirmation(dto.getCodeConfirmation());
         model.setCardNumber(dto.getCardNumber());
         model.setRefunded(dto.isRefunded());
+        model.setPaymentGatewayOrderId(dto.getPaymentGatewayOrderId());
+        model.setPaymentGatewayTransactionId(dto.getPaymentGatewayTransactionId());
         return model;
     }
 
@@ -41,6 +43,8 @@ public class PaymentMapper {
         dao.setCodeConfirmation(model.getCodeConfirmation());
         dao.setCardNumber(model.getCardNumber());
         dao.setRefunded(model.isRefunded());
+        dao.setPaymentGatewayOrderId(model.getPaymentGatewayOrderId());
+        dao.setPaymentGatewayTransactionId(model.getPaymentGatewayTransactionId());
         return dao;
     }
 
@@ -57,6 +61,8 @@ public class PaymentMapper {
         model.setCodeConfirmation(dao.getCodeConfirmation());
         model.setCardNumber(dao.getCardNumber());
         model.setRefunded(dao.isRefunded());
+        model.setPaymentGatewayOrderId(dao.getPaymentGatewayOrderId());
+        model.setPaymentGatewayTransactionId(dao.getPaymentGatewayTransactionId());
         return model;
     }
 
@@ -71,8 +77,16 @@ public class PaymentMapper {
         dto.setDate(model.getDate());
         dto.setConfirmation(model.getConfirmation());
         dto.setCodeConfirmation(model.getCodeConfirmation());
-        dto.setCardNumber(model.getCardNumber() == null ? "No fue con metodo de pago tarjeta" : "**** **** **** " + model.getCardNumber().substring(model.getCardNumber().length() - 4));
+
+        if (model.getCardNumber() != null)
+            if (model.getCardNumber().length() < 20)
+                dto.setCardNumber("**** **** **** " + model.getCardNumber().substring(model.getCardNumber().length() - 4));
+            else
+                dto.setCardNumber(model.getPaymentGatewayOrderId() == null ? null : "Token de tarjeta: ***...***" + model.getCardNumber().substring(model.getCardNumber().length() - 6));
+
         dto.setRefunded(model.isRefunded());
+        dto.setPaymentGatewayOrderId(model.getPaymentGatewayOrderId());
+        dto.setPaymentGatewayTransactionId(model.getPaymentGatewayTransactionId());
         return dto;
     }
 
@@ -98,12 +112,12 @@ public class PaymentMapper {
                         if (value instanceof String) dao.setDate((String) value);
                         break;
                     case "confirmation":
-                        if (value instanceof Number) dao.setConfirmation(((Number) value).intValue());
+                        if (value instanceof Number) dao.setConfirmation(0);
                         break;
                     case "codeConfirmation":
                     case "code_confirmation":
-                        if (value == null || value instanceof Number)
-                            dao.setCodeConfirmation(value == null ? null : ((Number) value).intValue());
+                        if (value == null || value instanceof String)
+                            dao.setCodeConfirmation(value == null ? null : ((String) value));
                         break;
                     case "cardNumber":
                     case "card_number":

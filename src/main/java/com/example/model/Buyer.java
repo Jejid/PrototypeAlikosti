@@ -1,5 +1,6 @@
 package com.example.model;
 
+import com.example.dto.paygate.ShippingAddress;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -18,5 +19,7 @@ public class Buyer {
     private String cc;
     private String email;
     private String passAccount;
+    private String phone;
+    private ShippingAddress shippingAddress;
 
 }

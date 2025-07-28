@@ -1,31 +1,37 @@
 package com.example.service;
 
 import com.example.dao.CreditCardDao;
+import com.example.dto.BuyerDto;
 import com.example.dto.CreditCardDto;
-import com.example.exception.BadRequestException;
+import com.example.dto.paygate.PayGateTokenRequest;
 import com.example.exception.EntityNotFoundException;
+import com.example.exception.PayGateTransactionException;
+import com.example.mapper.BuyerMapper;
+import com.example.mapper.CreditCardMapper;
 import com.example.model.CreditCard;
-import com.example.repository.CreditCardRepository;
-import com.example.utility.CreditCardMapper;
-import com.example.utility.DeletionValidator;
+import com.example.utility.DateValidator;
+import com.example.utility.PayGateRequestBuilder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
 public class CreditCardService {
-    private final CreditCardRepository creditCardRepository;
+    private final com.example.repository.CreditCardRepository creditCardRepository;
     private final CreditCardMapper creditCardMapper;
-    private final DeletionValidator validator;
+    private final BuyerService buyerService;
+    private final BuyerMapper buyerMapper;
+    private final PayGateService payGateService;
 
-    public CreditCardService(CreditCardRepository creditCardRepository, CreditCardMapper creditCardMapper, DeletionValidator validator) {
+    public CreditCardService(com.example.repository.CreditCardRepository creditCardRepository, CreditCardMapper creditCardMapper, BuyerService buyerService, BuyerMapper buyerMapper, PayGateService payGateService) {
         this.creditCardRepository = creditCardRepository;
         this.creditCardMapper = creditCardMapper;
-        this.validator = validator;
+        this.buyerService = buyerService;
+        this.buyerMapper = buyerMapper;
+        this.payGateService = payGateService;
     }
 
     public List<CreditCard> getAllCreditCards() {
@@ -40,26 +46,63 @@ public class CreditCardService {
     }
 
     public CreditCard createCreditCard(CreditCardDto creditCardDto) {
+
+        if (!DateValidator.isValidFormat(creditCardDto.getCardDate())) {
+            throw new IllegalArgumentException("Formato de fecha inválido. Usa MM/aa (ej. 07/27).");
+        }
+
+        if (DateValidator.isExpired(creditCardDto.getCardDate())) {
+            throw new IllegalArgumentException("La tarjeta está vencida.");
+        }
+
+        //Generamos Token de la tarjeta
+        BuyerDto buyerdto = buyerMapper.toDto(buyerService.getBuyerById(creditCardDto.getBuyerId()));
+
+        PayGateTokenRequest tokenRequest = PayGateRequestBuilder.buildTokenRequest(buyerdto, creditCardDto);
+        Map<String, Object> payGateResponse = payGateService.sendTokenRequest(tokenRequest);
+
+        @SuppressWarnings("unchecked")
+        Map<String, Object> creditCardToken = (Map<String, Object>) payGateResponse.get("creditCardToken");
+
+        Object tokenId = creditCardToken.get("creditCardTokenId");
+        if (tokenId == null) {
+            throw new PayGateTransactionException("Token no generado correctamente: no se recibió el ID del token.");
+        }
+
+        // Guardar el token en la base de datos
+        creditCardDto.setTokenizedCode((String) tokenId);
+
+
         return creditCardMapper.toModel(creditCardRepository.save(creditCardMapper.toDao(creditCardMapper.toModel(creditCardDto))));
     }
 
     public void deleteCreditCard(Integer id) {
         if (!creditCardRepository.existsById(id))
             throw new EntityNotFoundException("Tarjeta con ID: " + id + ", no encontrada");
-        //validator.deletionValidatorCreditCard(id);
         creditCardRepository.deleteById(id);
     }
 
     public CreditCard updateCreditCard(Integer id, CreditCardDto updatedCreditCardDto) {
         creditCardRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Tarjeta con ID: " + id + ", no encontrada"));
-        if (!Objects.equals(updatedCreditCardDto.getId(), id))
-            throw new BadRequestException("El ID ingresado en el JSON no coincide con el ID de actualización: " + id);
+
+        if (!DateValidator.isValidFormat(updatedCreditCardDto.getCardDate())) {
+            throw new IllegalArgumentException("Formato de fecha inválido. Usa MM/aa (ej. 07/27).");
+        }
+
+        if (DateValidator.isExpired(updatedCreditCardDto.getCardDate())) {
+            throw new IllegalArgumentException("La tarjeta está vencida.");
+        }
+
+        //aseguramos que sea el mismo id del endpoint
+        updatedCreditCardDto.setId(id);
+
         return creditCardMapper.toModel(creditCardRepository.save(creditCardMapper.toDao(creditCardMapper.toModel(updatedCreditCardDto))));
     }
 
     public CreditCard partialUpdateCreditCard(Integer id, Map<String, Object> updates) {
         Optional<CreditCardDao> optionalCreditCard = creditCardRepository.findById(id);
         CreditCardDao creditCardDaoOrigin = optionalCreditCard.orElseThrow(() -> new EntityNotFoundException("Tarjeta con ID: " + id + ", no encontrada"));
+
         return creditCardMapper.toModel(creditCardRepository.save(creditCardMapper.parcialUpdateToDao(creditCardDaoOrigin, updates)));
     }
 }

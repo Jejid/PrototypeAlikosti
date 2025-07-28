@@ -15,5 +15,5 @@ public class ShoppingCartOrder {
     private int buyerId;
     private int productId;
     private int units;
-    private int total_product;
+    private int totalProduct;
 }
