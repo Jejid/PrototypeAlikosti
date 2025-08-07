@@ -180,7 +180,7 @@ public class PaymentService {
                 throw new PayGateTransactionException("Estado desconocido: " + state);
             }
         } else
-            paymentDto.setCardNumber(null); // Esto para evitar guardar numero de tarjeta ingresados en front si es pago metodo sin tarjeta
+            paymentDto.setCardNumber(null); // Esto para evitar guardar número de tarjeta ingresado en front si es pago metodo sin tarjeta
 
         // 7. Guardar el pago
         Payment savedPayment = paymentMapper.toModel(
@@ -191,7 +191,7 @@ public class PaymentService {
         orderList.forEach(order -> order.setPaymentId(savedPayment.getId()));
         orderProcessedService.createMultipleOrdersProcessed(orderList);
 
-        // 9. Si fue rechazado, revertir stock y lanzar error
+        // 9. Sí fue rechazado, revertir stock y lanzar error
         if (paymentDto.getConfirmation() == 2) {
             updateStock(orderList, "increase");
             throw new PayGateTransactionException("Pago rechazado por PayGate");

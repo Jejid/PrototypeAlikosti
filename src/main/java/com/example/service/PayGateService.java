@@ -20,7 +20,7 @@ public class PayGateService {
 
     private final RestTemplate restTemplate;
 
-    private static final String PAYGATE_URL = "https://sandbox.payGate.com/payments.cgi";
+    private static final String PAYGATE_URL = "https://payGate.com/payments";
 
     public PayGateService(RestTemplate restTemplate) {
         this.restTemplate = restTemplate;
