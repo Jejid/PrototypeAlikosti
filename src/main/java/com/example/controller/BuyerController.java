@@ -36,10 +36,10 @@ public class BuyerController {
         return new ResponseEntity<>(buyerMapper.toPublicDto(buyerService.getBuyerById(id)), HttpStatus.OK);
     }
 
-    @GetMapping("/email/{email}/pass/{pass}")
-    public ResponseEntity<Map<String, String>> getLogin(@PathVariable String email, @PathVariable String pass) {
+    @GetMapping("/login")
+    public ResponseEntity<Map<String, String>> getLogin(@RequestBody Map<String, Object> credentials) {
         Map<String, String> response = new HashMap<>();
-        response.put("message", buyerService.getLoginAccess(email, pass));
+        response.put("message", buyerService.getLoginAccess(credentials));
         return ResponseEntity.ok(response);
     }
 
