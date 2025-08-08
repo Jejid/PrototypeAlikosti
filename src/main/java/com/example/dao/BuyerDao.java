@@ -30,7 +30,7 @@ public class BuyerDao {
     @Column(name = "email", length = 30, nullable = false, unique = true)
     private String email;
 
-    @Column(name = "pass_account", length = 20, nullable = false)
+    @Column(name = "pass_account", nullable = false)
     private String passAccount;
 
     private String phone;
