@@ -36,7 +36,7 @@ public class BuyerController {
         return new ResponseEntity<>(buyerMapper.toPublicDto(buyerService.getBuyerById(id)), HttpStatus.OK);
     }
 
-    @GetMapping("/login")
+    @PostMapping("/login")
     public ResponseEntity<Map<String, String>> getLogin(@RequestBody Map<String, Object> credentials) {
         Map<String, String> response = new HashMap<>();
         response.put("message", buyerService.getLoginAccess(credentials));

@@ -12,7 +12,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseEntity;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
@@ -69,5 +71,38 @@ class BuyerControllerTest {
         verify(buyerService, times(1)).getBuyerById(1);
         verify(buyerMapper, atLeast(1)).toPublicDto(buyer);
     }
+
+    @Test
+    public void testCreateBuyer() {
+        // Arrange
+        BuyerDto buyerDto = new BuyerDto();
+        Buyer buyer = new Buyer();
+        when(buyerService.createBuyer(buyerDto)).thenReturn(buyer);
+
+        // Act
+        ResponseEntity<Map<String, String>> response = buyerController.createBuyer(buyerDto);
+
+        //Assert
+        assertEquals(201, response.getStatusCodeValue());
+        verify(buyerService, times(1)).createBuyer(buyerDto);
+
+    }
+
+    @Test
+    public void testGetLogin() {
+        //Arrange
+        Map<String, Object> credentials = new HashMap<>();
+        when(buyerService.getLoginAccess(credentials)).thenReturn("Acceso Aprobado");
+
+        //Act
+        ResponseEntity<Map<String, String>> response = buyerController.getLogin(credentials);
+
+        //Assert
+        assertEquals("Acceso Aprobado", response.getBody().get("message"));
+        assertEquals(200, response.getStatusCodeValue());
+        verify(buyerService, times(1)).getLoginAccess(credentials);
+
+    }
+
 
 }
